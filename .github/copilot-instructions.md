@@ -37,7 +37,7 @@ Workflow:
    Instead create `manifest/package.xml` for surviving components and
    `manifest/destructiveChangesPost.xml` for intended deletions, then run:
    `npm run deploy -- -TargetOrg <development-org>
-   -DestructiveChanges manifest\destructiveChangesPost.xml`.
+-DestructiveChanges manifest\destructiveChangesPost.xml`.
    Use exact Metadata API member names, including `%28`/`%29` in layout names.
    The script uses concise JSON output and reports only deployment status,
    component counts, and deletions.
@@ -55,12 +55,12 @@ Workflow:
    - push the branch to GitHub.
 
 9. Add a Jira comment to `<JIRA_STORY>` containing:
-    - deployment status
-    - Salesforce components
-    - target org
-    - branch
-    - commit hash.
-    - update JIRA status to "Done" after successful deployment.
+   - deployment status
+   - Salesforce components
+   - target org
+   - branch
+   - commit hash.
+   - update JIRA status to "Done" after successful deployment.
 
 10. Ask for approval before creating or merging a pull request.
 
