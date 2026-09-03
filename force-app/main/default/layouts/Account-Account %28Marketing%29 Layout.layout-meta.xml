@@ -86,10 +86,6 @@
                 <field>CustomerPriority__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Customer_Tier__c</field>
-            </layoutItems>
-            <layoutItems>
                 <behavior>Required</behavior>
                 <field>SLA__c</field>
             </layoutItems>
@@ -122,10 +118,6 @@
             <layoutItems>
                 <behavior>Required</behavior>
                 <field>SLAExpirationDate__c</field>
-            </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>Renewal_Date__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
