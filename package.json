@@ -10,10 +10,13 @@
     "test:unit:watch": "sfdx-lwc-jest --watch",
     "test:unit:debug": "sfdx-lwc-jest --debug",
     "test:unit:coverage": "sfdx-lwc-jest --coverage",
+    "deploy": "powershell -ExecutionPolicy Bypass -File scripts\\deploy.ps1",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:verify": "prettier --check \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prepare": "husky || true",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "story:start": "node scripts/story.js start",
+    "story:publish": "node scripts/story.js publish"
   },
   "devDependencies": {
     "@lwc/eslint-plugin-lwc": "^3.1.0",
@@ -38,7 +41,7 @@
       "eslint"
     ],
     "**/lwc/**": [
-        "sfdx-lwc-jest -- --bail --findRelatedTests --passWithNoTests"
+      "sfdx-lwc-jest -- --bail --findRelatedTests --passWithNoTests"
     ]
   }
 }
