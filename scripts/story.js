@@ -1,3 +1,4 @@
+javascript;
 const { spawnSync } = require("child_process");
 
 const TARGET_ORG = process.env.SF_TARGET_ORG || "dev-sandbox";
@@ -86,6 +87,48 @@ function getSalesforceFiles() {
   return getChangedFiles().filter((file) => file.startsWith("force-app/"));
 }
 
+function getFieldFiles(files) {
+  return files.filter(
+    (file) =>
+      file.includes("/objects/") &&
+      file.includes("/fields/") &&
+      file.endsWith(".field-meta.xml")
+  );
+}
+
+function getPermissionSetFiles(files) {
+  return files.filter(
+    (file) =>
+      file.includes("/permissionsets/") &&
+      file.endsWith(".permissionset-meta.xml")
+  );
+}
+
+function getApexFiles(files) {
+  return files.filter(
+    (file) =>
+      file.includes("/classes/") &&
+      (file.endsWith(".cls") || file.endsWith(".cls-meta.xml"))
+  );
+}
+
+function getFlowFiles(files) {
+  return files.filter(
+    (file) => file.includes("/flows/") && file.endsWith(".flow-meta.xml")
+  );
+}
+
+function getOtherSalesforceFiles(files) {
+  const knownFiles = new Set([
+    ...getFieldFiles(files),
+    ...getPermissionSetFiles(files),
+    ...getApexFiles(files),
+    ...getFlowFiles(files)
+  ]);
+
+  return files.filter((file) => !knownFiles.has(file));
+}
+
 function ensureCleanWorkspace() {
   const status = capture("git", ["status", "--porcelain"]);
 
@@ -116,10 +159,82 @@ Story initialized successfully.
 Next:
 Copilot can now implement ${jiraKey}.
 
-After reviewing the implementation run:
+Copilot should:
+1. Read Jira.
+2. Resolve persona-to-Permission Set mapping from Confluence.
+3. Implement Salesforce metadata.
+4. Update required Permission Set field permissions.
+5. Review git diff.
+
+After reviewing and approving the implementation run:
 
 npm run story:publish -- ${jiraKey}
 `);
+}
+
+function printChangeSummary(files) {
+  const fieldFiles = getFieldFiles(files);
+  const permissionSetFiles = getPermissionSetFiles(files);
+  const apexFiles = getApexFiles(files);
+  const flowFiles = getFlowFiles(files);
+  const otherFiles = getOtherSalesforceFiles(files);
+
+  console.log(`
+CHANGE SUMMARY
+==============
+
+Target Org:
+${TARGET_ORG}
+
+Fields:
+${fieldFiles.length ? fieldFiles.join("\n") : "None"}
+
+Permission Sets:
+${permissionSetFiles.length ? permissionSetFiles.join("\n") : "None"}
+
+Apex:
+${apexFiles.length ? apexFiles.join("\n") : "None"}
+
+Flows:
+${flowFiles.length ? flowFiles.join("\n") : "None"}
+
+Other Salesforce Metadata:
+${otherFiles.length ? otherFiles.join("\n") : "None"}
+`);
+}
+
+function validateSecurityChanges(files) {
+  const fieldFiles = getFieldFiles(files);
+  const permissionSetFiles = getPermissionSetFiles(files);
+
+  if (fieldFiles.length > 0 && permissionSetFiles.length === 0) {
+    console.warn(`
+SECURITY WARNING
+================
+
+New or modified field metadata was detected, but no Permission Set metadata changed.
+
+This may be valid if Jira does not require field access changes.
+
+If Jira contains persona/security requirements, STOP and verify:
+- Confluence persona mapping was resolved.
+- Required Permission Set files were updated.
+- FieldPermissions were added correctly.
+`);
+  }
+
+  if (permissionSetFiles.length > 0) {
+    console.log(`
+SECURITY METADATA DETECTED
+==========================
+
+Permission Set files included in this story:
+
+${permissionSetFiles.join("\n")}
+
+Verify these Permission Sets match the Jira personas resolved from Confluence.
+`);
+  }
 }
 
 function deploySalesforce(files) {
@@ -136,7 +251,6 @@ ${files.join("\n")}
   }
 
   args.push("--target-org", TARGET_ORG);
-
   args.push("--json");
 
   const output = capture("sf", args);
@@ -190,6 +304,21 @@ Target Org: ${TARGET_ORG}
 
   /*
    * STEP 1
+   * Show all Salesforce changes grouped by type.
+   */
+  printChangeSummary(salesforceFiles);
+
+  /*
+   * STEP 2
+   * Warn if fields changed but Permission Sets did not.
+   *
+   * Copilot should already have validated Jira security
+   * requirements against Confluence before this script runs.
+   */
+  validateSecurityChanges(salesforceFiles);
+
+  /*
+   * STEP 3
    * Deploy before commit.
    *
    * If Salesforce fails, execution stops here.
@@ -197,34 +326,40 @@ Target Org: ${TARGET_ORG}
   deploySalesforce(salesforceFiles);
 
   /*
-   * STEP 2
-   * Stage only the Salesforce files belonging
-   * to this implementation.
+   * STEP 4
+   * Stage only Salesforce files belonging
+   * to this Jira implementation.
    */
   command("git", ["add", "--", ...salesforceFiles]);
 
   /*
-   * STEP 3
+   * STEP 5
    * Commit.
    */
   command("git", ["commit", "-m", `${jiraKey} Salesforce implementation`]);
 
   /*
-   * STEP 4
+   * STEP 6
    * Get commit SHA.
    */
   const commit = capture("git", ["rev-parse", "--short", "HEAD"]);
 
   /*
-   * STEP 5
+   * STEP 7
    * Push feature branch.
    */
   command("git", ["push", "-u", "origin", currentBranch]);
 
   /*
-   * This block is intentionally easy for
-   * Copilot to read and send back to Jira.
+   * Build categorized result output
+   * so Copilot can post useful information back to Jira.
    */
+  const fieldFiles = getFieldFiles(salesforceFiles);
+  const permissionSetFiles = getPermissionSetFiles(salesforceFiles);
+  const apexFiles = getApexFiles(salesforceFiles);
+  const flowFiles = getFlowFiles(salesforceFiles);
+  const otherFiles = getOtherSalesforceFiles(salesforceFiles);
+
   console.log(`
 === STORY_RESULT ===
 
@@ -234,7 +369,22 @@ Salesforce Org: ${TARGET_ORG}
 Branch: ${currentBranch}
 Commit: ${commit}
 
-Components:
+Fields:
+${fieldFiles.length ? fieldFiles.join("\n") : "None"}
+
+Permission Sets:
+${permissionSetFiles.length ? permissionSetFiles.join("\n") : "None"}
+
+Apex:
+${apexFiles.length ? apexFiles.join("\n") : "None"}
+
+Flows:
+${flowFiles.length ? flowFiles.join("\n") : "None"}
+
+Other Salesforce Metadata:
+${otherFiles.length ? otherFiles.join("\n") : "None"}
+
+All Components:
 ${salesforceFiles.join("\n")}
 
 === END_STORY_RESULT ===

@@ -3,6 +3,53 @@ description: Workflow for implementing any Jira user story named or keyed in the
 applyTo: **/*
 ---
 
+## Salesforce Security Rules
+
+Confluence is the source of truth for mapping
+business personas to Salesforce Permission Sets.
+
+When Jira contains personas such as:
+
+- Standard User
+- Admin
+- Manager
+- Sales User
+- Service User
+
+do not assume their Salesforce Permission Set names.
+
+Use Atlassian MCP to search Confluence for the approved
+Salesforce Persona Permission Set Mapping.
+
+Resolve:
+
+Jira Persona
+→ Permission Set Label
+→ Permission Set API Name
+
+Never guess a Permission Set API name.
+
+If no approved mapping exists, stop.
+
+If multiple mappings exist, stop.
+
+Do not automatically create a new Permission Set.
+
+For field access use Permission Set fieldPermissions.
+
+Read/Edit:
+
+editable = true
+readable = true
+
+Read Only:
+
+editable = false
+readable = true
+
+Before deployment verify the requested Jira access
+against the generated permission-set metadata.
+
 Trigger:
 
 When the user provides a Jira user story name or key, run this workflow for that
