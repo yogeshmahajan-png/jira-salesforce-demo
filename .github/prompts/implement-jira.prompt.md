@@ -81,9 +81,12 @@ initial result: Not Run`.
 
 - After deployment succeeds, re-read the parent story and all subtasks before
   executing tests. Reconcile the coverage matrix against Jira. If any required
-  test-case subtask is missing, create it under `<KEY>` before running tests;
-  use the standard Subtask type when no test-specific type exists. Never invent
-  a Jira key: use the key returned by Jira and verify its parent relationship.
+  test-case subtask is missing, stop and ask for approval to create the missing
+  subtask(s) and run their tests. Do not create subtasks or execute their tests
+  until approval is received. After approval, create them under `<KEY>`, use the
+  standard Subtask type when no test-specific type exists, and verify each
+  returned parent relationship. Never invent a Jira key: use the key returned by
+  Jira.
   Do not generate or post the report until every AC has a Jira test-case subtask.
 - Execute every current case against the published version using specified Apex
   tests, relevant LWC tests, and development-org API/UI checks as appropriate.
