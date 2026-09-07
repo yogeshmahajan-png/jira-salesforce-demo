@@ -149,27 +149,47 @@ function adf(text) {
 }
 function reports(result) {
   const { run, deployment: d } = result;
-  const context = `Run: ${run.id} | ${run.time} | Org: ${run.org} | Branch: ${run.branch} | Commit: ${run.commit}`;
-  const header = [
-    `Story: ${result.story}`,
-    context,
-    `Deployment: ${d.status} | ID: ${d.id} | ${d.details}`,
-    `Components: ${d.components.join(", ") || "None"}`,
-    `Security: ${result.security.join("; ") || "Not applicable"}`,
-    `Testing: ${result.testing}`,
-    `Totals: ${JSON.stringify(result.totals)}`,
-    `Uncovered ACs: ${result.uncovered.join(", ") || "None"}`
+  const context = [
+    `- **Run ID:** ${cell(run.id)}`,
+    `- **Started:** ${cell(run.time)}`,
+    `- **Org:** ${cell(run.org)}`,
+    `- **Branch:** \`${cell(run.branch)}\``,
+    `- **Commit:** \`${cell(run.commit)}\``
+  ];
+  const summary = [
+    `- **Status:** ${result.testing}`,
+    `- **Totals:** ${result.totals.Passed} passed, ${result.totals.Failed} failed, ${result.totals.Blocked} blocked, ${result.totals["Not Run"]} not run (${result.totals.total} total)`,
+    `- **Uncovered acceptance criteria:** ${result.uncovered.join(", ") || "None"}`
   ];
   const rows = result.cases.map((c) => [
     cell(c.ac.join(", ")),
     `[${c.key}](${result.jiraUrl}/browse/${c.key})`,
-    `${cell(c.expected)} -> ${cell(c.actual)}`,
+    `${cell(c.expected)}<br>${cell(c.actual)}`,
     c.result,
     cell(c.evidence.join("; ") || "None"),
     cell(c.followUp)
   ]);
   const markdown = [
-    ...header.map(cell),
+    `## Test report: ${result.story}`,
+    "",
+    "### Run details",
+    ...context,
+    "",
+    "### Deployment",
+    `- **Status:** ${d.status}`,
+    `- **Deployment ID:** \`${cell(d.id)}\``,
+    `- **Details:** ${cell(d.details)}`,
+    `- **Components:** ${cell(d.components.join(", ") || "None")}`,
+    "",
+    "### Security",
+    ...(result.security.length
+      ? result.security.map((item) => `- ${cell(item)}`)
+      : ["- Not applicable"]),
+    "",
+    "### Testing summary",
+    ...summary,
+    "",
+    "### Test cases",
     "",
     "| AC | Subtask | Expected -> actual | Result | Evidence | Follow-up |",
     "| --- | --- | --- | --- | --- | --- |",
@@ -178,22 +198,17 @@ function reports(result) {
   ].join("\n");
   const caseText = (c) =>
     [
-      `${c.id} | ${c.key} | AC: ${c.ac.join(", ")} | ${c.result}`,
-      context,
-      `Method: ${c.method}`,
-      `Expected: ${c.expected}`,
-      `Actual: ${c.actual}`,
-      `Evidence: ${c.evidence.join("; ") || "None"}`,
-      `Follow-up: ${c.followUp}`,
-      `Cleanup: ${c.cleanup}`
+      `### Test case ${c.id}: ${c.key}`,
+      `- **Acceptance criteria:** ${c.ac.join(", ")}`,
+      `- **Result:** ${c.result}`,
+      `- **Method:** ${c.method}`,
+      `- **Expected:** ${c.expected}`,
+      `- **Actual:** ${c.actual}`,
+      `- **Evidence:** ${c.evidence.join("; ") || "None"}`,
+      `- **Follow-up:** ${c.followUp}`,
+      `- **Cleanup:** ${c.cleanup}`
     ].join("\n");
-  const parentText = [
-    ...header,
-    ...result.cases.map(
-      (c) =>
-        `${c.ac.join(", ")} | ${result.jiraUrl}/browse/${c.key} | ${c.expected} -> ${c.actual} | ${c.result} | Evidence: ${c.evidence.join("; ") || "None"} | Follow-up: ${c.followUp}`
-    )
-  ].join("\n");
+  const parentText = markdown;
   const comments = [
     { issueKey: result.story, text: parentText },
     ...result.cases.map((c) => ({ issueKey: c.key, text: caseText(c) }))

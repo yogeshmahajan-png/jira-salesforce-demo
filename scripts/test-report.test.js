@@ -88,6 +88,13 @@ test("generates reproducible parent/subtask text and ADF payloads", () => {
   assert.equal(output.comments.length, 2);
   assert.equal(output.comments[0].issueKey, data.story);
   assert.equal(output.comments[1].issueKey, data.cases[0].key);
+  assert.match(output.markdown, /^## Test report: SF-125/m);
+  assert.match(output.markdown, /### Testing summary/);
+  assert.match(
+    output.markdown,
+    /Totals:\*\* 1 passed, 0 failed, 0 blocked, 0 not run \(1 total\)/
+  );
+  assert.match(output.markdown, /### Test cases/);
   assert.match(output.markdown, /Value \\\| saved next line/);
   assert.equal(output.comments[1].body.type, "doc");
   assert.ok(output.comments[1].text.startsWith(output.comments[1].marker));

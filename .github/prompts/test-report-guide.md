@@ -6,10 +6,12 @@ It formats supplied observations; it does not execute tests, verify evidence, ch
 Jira parent relationships, or post comments. Copilot performs those actions.
 
 1. Before collecting results, re-read the parent story and its subtasks through
-   Atlassian MCP. If deployment has succeeded and any acceptance criterion lacks
-   a test-case subtask, create the missing standard Subtask under the parent,
-   verify the returned Jira parent relationship, then include its real key in
-   the report input. Never fabricate a Jira key.
+   Atlassian MCP after deployment succeeds. If any acceptance criterion lacks a
+   test-case subtask, stop and ask for approval to create the missing standard
+   Subtask(s) and run their tests. Do not create subtasks, execute their tests,
+   or generate the report until approval is received. After approval, create
+   each Subtask under the parent, verify the returned Jira parent relationship,
+   then include its real key in the report input. Never fabricate a Jira key.
 2. Copy `scripts/test-results.example.json` to
    `artifacts/jira/<KEY>/<RUN>-input.json`. Replace all example values with the real
    story, Jira base URL, current complete AC list, and every current test-case subtask.
