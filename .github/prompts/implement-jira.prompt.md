@@ -1,452 +1,145 @@
 ---
 name: implement-jira
-description: Implement a Salesforce Jira story end-to-end
+description: Deliver a Salesforce Jira story with test-case subtasks and testing reports
 argument-hint: "Jira key, for example SF-125"
 agent: agent
 ---
 
----
-
-Implement Jira story:
-
-${input:jiraKey:Enter Jira key, for example SF-125}
-
-Follow these steps exactly.
-
-## Phase 1 - Read Jira
-
-Use the Atlassian MCP tools to retrieve the Jira issue.
-
-Extract:
-
-- summary
-- description
-- Salesforce objects
-- requested fields/components
-- API names
-- data types
-- acceptance criteria
-- permissions/security requirements
-- personas/user types
-- requested access level
-- testing requirements
-
-Examples of personas/user types may include:
-
-- Standard User
-- Admin
-- Sales User
-- Sales Manager
-- Service User
-
-If the requirements are materially ambiguous, explain the ambiguity rather than inventing requirements.
-
-Do not assume that a Jira persona/user type is the Salesforce Permission Set API name.
-
----
-
-## Phase 2 - Resolve Security from Confluence
-
-If Jira specifies any persona, user type, or security/access requirement, use Atlassian MCP to search Confluence.
-
-Search for the approved Salesforce persona-to-Permission-Set mapping.
-
-Preferred Confluence page:
-
-"Salesforce Persona Permission Set Mapping"
-
-The Confluence mapping is the source of truth for determining which Salesforce Permission Set represents each Jira persona.
-
-For every persona mentioned in Jira, resolve:
-
-Jira Persona
-→ Permission Set Label
-→ Permission Set API Name
-
-Example:
-
-Jira:
-
-Standard User
-
-Confluence:
-
-Standard User
-→ Sales Standard User
-→ Sales_Standard_User
-
-Another example:
-
-Admin
-→ Sales Admin
-→ Sales_Admin
-
-Never guess or construct a Permission Set API name.
-
-If no approved mapping exists for a Jira persona:
-
-STOP.
-
-Explain:
-
-"No approved Permission Set mapping was found in Confluence for persona: <persona>."
-
-Do not create a new Permission Set automatically.
-
-If multiple mappings exist and it is unclear which one applies:
-
-STOP.
-
-Explain the ambiguity and ask the developer to resolve it.
-
-Before continuing, produce a mapping summary:
-
-| Jira Persona  | Permission Set Label | Permission Set API Name |
-| ------------- | -------------------- | ----------------------- |
-| Standard User | Sales Standard User  | Sales_Standard_User     |
-| Admin         | Sales Admin          | Sales_Admin             |
-
----
-
-## Phase 3 - Start Development
-
-Run:
-
-npm run story:start -- ${input:jiraKey}
-
-Do not create a second branch if the correct Jira branch already exists.
-
-If the branch already exists, use the existing branch after verifying that it belongs to the current Jira story.
-
----
-
-## Phase 4 - Analyze Existing Implementation
-
-Inspect the Salesforce DX repository before modifying anything.
-
-Check whether the requested:
-
-- objects
-- fields
-- Apex classes
-- Flows
-- validation rules
-- Permission Sets
-- other Salesforce metadata
-
-already exist.
-
-Follow existing project conventions.
-
-For Permission Sets resolved from Confluence, look under:
-
-force-app/main/default/permissionsets/
-
-Example:
-
-force-app/main/default/permissionsets/Sales_Standard_User.permissionset-meta.xml
-
-If a required Permission Set exists locally, use the existing metadata file.
-
-If the Permission Set does not exist locally, retrieve it from the development Salesforce org.
-
-Example:
-
-sf project retrieve start --metadata PermissionSet:Sales_Standard_User --target-org dev-sandbox
-
-Do not create a replacement Permission Set simply because the expected Permission Set is missing from the local repository.
-
-If the Permission Set cannot be found in Salesforce either:
-
-STOP and report the problem.
-
----
-
-## Phase 5 - Implement Salesforce Changes
-
-Implement only the Salesforce changes required by the Jira story.
-
-Do not modify unrelated files.
-
-Store Salesforce metadata under:
-
-force-app/main/default
-
-For example, new Account fields belong under:
-
-force-app/main/default/objects/Account/fields/
-
-### Field Security
-
-If Jira specifies field access by persona, update the Permission Set resolved from Confluence.
-
-Use:
-
-force-app/main/default/permissionsets/<PermissionSetApiName>.permissionset-meta.xml
-
-Do not use Profile metadata when the approved Confluence mapping specifies a Permission Set.
-
-Never replace the entire existing Permission Set file.
-
-Merge the required field permissions into the existing Permission Set metadata while preserving all unrelated permissions.
-
-For Read/Edit access:
-
-```xml
-<fieldPermissions>
-    <editable>true</editable>
-    <field>Account.Customer_Tier__c</field>
-    <readable>true</readable>
-</fieldPermissions>
-```
-
-For Read Only access:
-
-```xml
-<fieldPermissions>
-    <editable>false</editable>
-    <field>Account.Customer_Tier__c</field>
-    <readable>true</readable>
-</fieldPermissions>
-```
-
-For No Access:
-
-Do not grant field permission unless existing repository conventions explicitly require an entry.
-
-### Example
-
-If Jira specifies:
-
-Standard User:
-
-- Customer_Tier__c: Read/Edit
-- Renewal_Date__c: Read/Edit
-
-Admin:
-
-- Customer_Tier__c: Read/Edit
-- Renewal_Date__c: Read/Edit
-
-And Confluence resolves:
-
-Standard User
-→ Sales_Standard_User
-
-Admin
-→ Sales_Admin
-
-Then modify:
-
-force-app/main/default/permissionsets/Sales_Standard_User.permissionset-meta.xml
-
-and:
-
-force-app/main/default/permissionsets/Sales_Admin.permissionset-meta.xml
-
-Do not modify unrelated Permission Sets.
-
-### Apex Requirements
-
-If Apex is required:
-
-- follow existing architecture
-- bulkify code
-- avoid SOQL/DML inside loops
-- implement appropriate tests
-- consider CRUD/FLS
-- consider sharing requirements
-- follow existing error-handling patterns
-- do not hard-code IDs
-
----
-
-## Phase 6 - Validate Security
-
-If Jira contains security requirements, create a security validation matrix before deployment.
-
-Example:
-
-| Persona       | Permission Set      | Field                    | Read | Edit |
-| ------------- | ------------------- | ------------------------ | ---- | ---- |
-| Standard User | Sales_Standard_User | Account.Customer_Tier__c | Yes  | Yes  |
-| Standard User | Sales_Standard_User | Account.Renewal_Date__c  | Yes  | Yes  |
-| Admin         | Sales_Admin         | Account.Customer_Tier__c | Yes  | Yes  |
-| Admin         | Sales_Admin         | Account.Renewal_Date__c  | Yes  | Yes  |
-
-Compare this matrix against:
-
-1. Jira requirements
-2. Confluence persona mapping
-3. Generated Salesforce Permission Set metadata
-
-All three must agree.
-
-If they do not agree:
-
-STOP.
-
-Do not deploy until the mismatch is resolved.
-
----
-
-## Phase 7 - Review
-
-Run:
-
-git status
-
-git diff
-
-Explain:
-
-1. files created
-2. files modified
-3. Salesforce components affected
-4. fields/components created
-5. Permission Sets modified
-6. Jira personas identified
-7. Confluence persona-to-Permission-Set mappings used
-8. field access granted to each Permission Set
-9. how each change maps to the Jira acceptance criteria
-
-If security is involved, display the final security matrix.
-
-Verify that no unrelated Salesforce metadata was changed.
-
-STOP HERE and ask the developer to approve deployment.
-
-Do not deploy, commit, or push without approval.
-
----
-
-## Phase 8 - Publish After Approval
-
-Only after the developer explicitly approves the reviewed changes, run:
-
-npm run story:publish -- ${input:jiraKey}
-
-Do not manually commit or push because the script handles this.
-
-The publish process must include all Salesforce files related to the Jira story, including:
-
-- field metadata
-- Permission Set metadata
-- Apex
-- Flow
-- other required Salesforce metadata
-
-Do not include unrelated changes.
-
----
-
-## Phase 9 - Handle Failure
-
-If the publish script fails:
-
-- stop
-- do not bypass the failure
-- do not commit manually
-- do not push
-- identify the deployment failure
-
-Use Atlassian MCP to comment on the Jira issue with:
-
-- status: failed
-- failure reason
-- affected Salesforce component
-- affected Permission Set, if applicable
-- Salesforce target org
-
-Do not transition the Jira issue.
-
----
-
-## Phase 10 - Update Jira After Success
-
-Read the STORY_RESULT output produced by the publish command.
-
-Use Atlassian MCP to add a Jira comment.
-
-The comment should contain:
-
-Implementation completed successfully.
-
-Include:
-
-- Salesforce target org
-- deployed components
-- fields created/modified
-- Jira personas
-- Permission Sets modified
-- field access granted
-- Git branch
-- Git commit
-- deployment status
-
-Example:
-
-Implementation completed successfully.
-
-Salesforce Org:
-dev-sandbox
-
-Components:
-
-- Account.Customer_Tier__c
-- Account.Renewal_Date__c
-
-Security:
-
-Standard User
-→ Sales_Standard_User
-→ Customer_Tier__c: Read/Edit
-→ Renewal_Date__c: Read/Edit
-
-Admin
-→ Sales_Admin
-→ Customer_Tier__c: Read/Edit
-→ Renewal_Date__c: Read/Edit
-
-Deployment:
-Succeeded
-
-Branch:
-feature/SF-125
-
-Commit:
-abc1234
-
-Do not transition the Jira issue unless explicitly requested.
-
----
-
-## Security and Safety Rules
-
-Never:
-
-- deploy to Production
-- expose tokens
-- expose passwords
-- expose client secrets
-- modify unrelated metadata
-- force push Git
-- bypass Salesforce deployment failures
-- guess Permission Set API names
-- create Permission Sets without an explicit requirement
-- change Profile metadata when Confluence specifies Permission Sets
-- grant more access than Jira requests
-- remove existing unrelated Permission Set permissions
-
-Always use:
-
-Jira
-→ business requirement and requested access
-
-Confluence
-→ approved persona-to-Permission-Set mapping
-
-Salesforce repository/org
-→ actual Permission Set metadata
-
-The final implementation must be consistent across all three sources.
+Implement ${input:jiraKey:Enter Jira key, for example SF-125}.
+Use the resolved key as `<KEY>`. Follow these phases in order.
+
+## 1. Requirements and security
+
+- Read the exact story using Atlassian MCP; search only without a key. Extract
+  components, API names/types/properties, acceptance criteria (ACs), personas,
+  access, layouts, and testing requirements. Read relevant comments and all
+  existing subtasks, including pagination.
+- Never invent requirements. If new fields lack explicit permissions or layout
+  placement, comment with missing requirements and stop before edits/subtask
+  creation. Resolve other material ambiguities before dependent work.
+- For security/personas, find the approved Confluence page "Salesforce Persona
+  Permission Set Mapping". Resolve persona -> label -> Permission Set API name.
+  Stop for missing/ambiguous mappings; never guess or auto-create Permission Sets.
+
+## 2. Test-case subtasks
+
+- Assign stable AC IDs if absent. Cover every AC and relevant positive, negative,
+  boundary, regression, and persona allow/deny cases.
+- Discover project subtask types and required fields. Use its test-case subtask
+  type or standard subtask; never assume a test plugin. Create one subtask per
+  independently executable case under `<KEY>` before implementation.
+  If creation is blocked, report the reason and stop.
+- Reuse matching TC IDs/equivalent cases; avoid duplicates. Preserve history,
+  update changed requirements, and explain superseded cases.
+- Each subtask: `TC-ID: behavior | AC IDs | preconditions/org/persona/Permission Set |
+data/setup | numbered steps + expected results | method/test/command | cleanup |
+initial result: Not Run`.
+- Keep one coverage matrix: `AC -> TC ID -> subtask key`; no uncovered ACs.
+  Show a brief implementation/testing plan.
+
+## 3. Implement
+
+- Inspect relevant metadata/conventions. Run `npm run story:start -- <KEY>`;
+  reuse a verified matching branch if present.
+- Modify only story metadata under `force-app/main/default` and necessary tests.
+  Reuse existing components and preserve unrelated work.
+- Use `permissionsets/<API>.permissionset-meta.xml`. If missing locally, retrieve
+  `PermissionSet:<API>` from the development org; stop if absent there too.
+  Merge required permissions, preserving unrelated entries. Do not substitute
+  Profiles or create replacement Permission Sets.
+- Field permissions: Read/Edit = readable/editable true; Read Only = readable
+  true/editable false; No Access = no grant. Resolve conflicting existing grants;
+  never exceed requested access.
+- Apex: follow architecture/error patterns, bulkify, avoid SOQL/DML in loops and
+  hard-coded IDs, enforce required CRUD/FLS/sharing, and add meaningful tests.
+
+## 4. Review and publish
+
+- Check `git status`, scoped diff, `git diff --check`, changed XML, and applicable
+  local tests. Fix failures before publishing.
+- Present files/components, AC coverage, test links/results, and security matrix:
+  `persona | Permission Set | field | read | edit`. Jira, Confluence, and metadata
+  must agree; stop deployment on mismatch.
+- Obtain approval for reviewed deployment/commit/push unless already explicitly
+  authorized for this scope. Verify the intended development org and file scope.
+- Run `npm run story:publish -- <KEY>`; it deploys, commits, and pushes together.
+  Do not repeat these manually. Capture `STORY_RESULT`; publishing is not proof
+  that acceptance tests passed.
+- For reviewed destructive changes, never pass deleted files to `--source-dir`.
+  Prepare `manifest/package.xml` for surviving components and
+  `manifest/destructiveChangesPost.xml` for deletions. Run:
+  `npm run deploy -- -TargetOrg <development-org> -DestructiveChanges manifest\destructiveChangesPost.xml`.
+  Use exact Metadata API names, including layout `%28`/`%29` encoding.
+  This only deploys: verify success before authorized commit/push; do not then
+  use a publish path that cannot handle deletions.
+- On publish failure, stop downstream publishing; do not bypass or manually
+  commit/push. Report the actual failed stage, reason, components/Permission Sets,
+  org, and any completed deployment/commit. Mark prevented cases Blocked in
+  subtask comments and proceed to the parent report with available results.
+
+## 5. Execute and record tests
+
+- After deployment succeeds, re-read the parent story and all subtasks before
+  executing tests. Reconcile the coverage matrix against Jira. If any required
+  test-case subtask is missing, create it under `<KEY>` before running tests;
+  use the standard Subtask type when no test-specific type exists. Never invent
+  a Jira key: use the key returned by Jira and verify its parent relationship.
+  Do not generate or post the report until every AC has a Jira test-case subtask.
+- Execute every current case against the published version using specified Apex
+  tests, relevant LWC tests, and development-org API/UI checks as appropriate.
+  Local tests do not replace required deployed checks. Await asynchronous results.
+- Verify effective persona access: XML inspection or `System.runAs` alone does
+  not prove CRUD/FLS. Missing users/tools/manual execution means Blocked.
+- Continue independent cases after failures. Passed = expected behavior observed;
+  Failed = mismatch; Blocked = missing prerequisite; Not Run = unattempted with
+  explanation. Never fabricate results/evidence.
+- Read [test-report-guide.md](test-report-guide.md). Record observed results once
+  in its input JSON; run `npm run story:report -- <input.json> <new-output-directory>`
+  to generate compact results and parent/subtask comments. Post each generated
+  subtask comment through Atlassian MCP; do not manually redraft reports.
+- The reporting phase is mandatory after every successful deployment, including
+  deployments made through `npm run story:publish`. Run the report helper even
+  when all checks pass, and confirm one generated comment per parent and per
+  current test-case subtask before claiming completion.
+- Fix in-scope failures; repeat review/publish with applicable authorization.
+  Rerun affected cases and relevant regression tests. Preserve execution history
+  and tested versions; do not reuse stale results for changed behavior.
+
+## 6. Parent report and completion
+
+Use the same helper on successful, failed, or incomplete runs, including publish
+failures. Post its generated parent comment through Atlassian MCP. Exit code 2
+means reports were generated with failures/incomplete work; still post them.
+Exit code 1 means a generation error to fix. Use comment markers to avoid duplicates.
+
+Counts must reconcile. Testing passes only when all required cases pass for the
+final version; any failure means Failed, otherwise Blocked/Not Run means Incomplete.
+Deployment success or coverage alone is insufficient. Claim completion only after
+successful publishing, required testing, and confirmed Jira reports.
+
+If a Jira write fails, retain its pending payload locally, report the error, and
+check whether it succeeded before retrying. Never claim unconfirmed updates.
+Do not transition stories/subtasks unless explicitly requested; results are comments.
+Obtain approval before creating/merging a PR unless already authorized.
+Never expose secrets, deploy to Production, force push, or bypass deployment failures.
+
+## Token-efficient execution
+
+- Request only needed Jira fields when supported. Read subtask IDs/summaries first,
+  then necessary details. Start with relevant/latest execution comments; expand
+  history for requirements/evidence. Preserve pagination needed for full coverage.
+- Reuse unchanged requirements, issue-type metadata, and Confluence mappings within
+  the run; refresh when changed, stale, or resuming after interruption.
+- Locate files with `rg`; read relevant sections/dependencies. Batch independent
+  reads; keep dependent writes sequential.
+- Prefer structured CLI output: status, counts, IDs, failure excerpts. Keep full
+  sanitized logs in artifacts. Jira evidence needs accessible links or sufficient
+  sanitized excerpts; local paths alone are not shared evidence.
+- Run relevant tests together and map results to cases, rather than repeating a
+  command per subtask. Rerun for changes, failures, or unresolved evidence; honor
+  required suites. Use tool wait guidance rather than rapid polling.
+- Reuse the coverage matrix in reports. Keep subtask evidence reproducible and
+  parent rows concise; link instead of repeating logs/steps.
+- For long runs, keep a compact checkpoint: key, requirement/mapping references,
+  branch/commit, files, TC keys/results, run IDs, approvals, next step. Verify
+  current state on resume. Never save tokens by omitting ACs, tests, gates, or evidence.
