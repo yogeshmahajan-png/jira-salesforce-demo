@@ -5,13 +5,16 @@ The helper runs locally with Node and no additional dependencies or Jira credent
 It formats supplied observations; it does not execute tests, verify evidence, check
 Jira parent relationships, or post comments. Copilot performs those actions.
 
-1. Before collecting results, re-read the parent story and its subtasks through
-   Atlassian MCP after deployment succeeds. If any acceptance criterion lacks a
-   test-case subtask, stop and ask for approval to create the missing standard
-   Subtask(s) and run their tests. Do not create subtasks, execute their tests,
-   or generate the report until approval is received. After approval, create
-   each Subtask under the parent, verify the returned Jira parent relationship,
-   then include its real key in the report input. Never fabricate a Jira key.
+1. Before collecting results, refresh the parent story and subtasks through
+   Atlassian MCP after deployment succeeds. Use minimal fields first: key,
+   summary, status, updated, issue type, and parent. Fetch full
+   descriptions/comments only when timestamps changed, coverage is unclear, or
+   evidence is needed. If any acceptance criterion lacks a test-case subtask,
+   stop and ask for approval to create the missing standard Subtask(s) and run
+   their tests. Do not create subtasks, execute their tests, or generate the
+   report until approval is received. After approval, create each Subtask under
+   the parent, verify the returned Jira parent relationship, then include its
+   real key in the report input. Never fabricate a Jira key.
 2. Copy `scripts/test-results.example.json` to
    `artifacts/jira/<KEY>/<RUN>-input.json`. Replace all example values with the real
    story, Jira base URL, current complete AC list, and every current test-case subtask.
@@ -34,7 +37,8 @@ Jira parent relationships, or post comments. Copilot performs those actions.
    Exit 0 = generated, deployment succeeded and tests passed; 2 = generated but
    failed/incomplete testing or deployment; 1 = invalid input/write error. For 2,
    continue posting the report. For 1, fix the error before posting.
-5. Read the concise stdout summary. Artifacts:
+5. Read the concise stdout summary. Prefer `jira-comments.json` for posting; read
+   the other artifacts only when troubleshooting or previewing. Artifacts:
    - `test-results.json`: compact normalized results, calculated totals/status/uncovered ACs.
    - `jira-report.md`: parent-report preview.
    - `jira-comments.json`: one entry per parent/subtask with `issueKey`, `marker`,

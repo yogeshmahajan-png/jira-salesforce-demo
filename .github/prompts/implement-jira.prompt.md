@@ -10,21 +10,25 @@ Use the resolved key as `<KEY>`. Follow these phases in order.
 
 ## 1. Requirements and security
 
-- Read the exact story using Atlassian MCP; search only without a key. Extract
-  components, API names/types/properties, acceptance criteria (ACs), personas,
-  access, layouts, and testing requirements. Read relevant comments and all
-  existing subtasks, including pagination.
+- Read the exact story using Atlassian MCP; search only when no key is supplied.
+  Use direct issue/page reads for known keys or IDs. Start with needed fields and
+  subtask keys/summaries, then expand only for requirements, comments, or evidence
+  that are actually needed. Extract components, API names/types/properties,
+  acceptance criteria (ACs), personas, access, layouts, and testing requirements.
 - Never invent requirements. If new fields lack explicit permissions or layout
   placement, comment with missing requirements and stop before edits/subtask
   creation. Resolve other material ambiguities before dependent work.
 - For security/personas, find the approved Confluence page "Salesforce Persona
-  Permission Set Mapping". Resolve persona -> label -> Permission Set API name.
-  Stop for missing/ambiguous mappings; never guess or auto-create Permission Sets.
+  Permission Set Mapping" once per run, then reuse that exact page while it remains
+  current. Resolve persona -> label -> Permission Set API name. Stop for
+  missing/ambiguous mappings; never guess or auto-create Permission Sets.
 
 ## 2. Test-case subtasks
 
 - Assign stable AC IDs if absent. Cover every AC and relevant positive, negative,
-  boundary, regression, and persona allow/deny cases.
+  boundary, regression, and persona allow/deny cases. Combine checks into the
+  fewest independently executable subtasks when they share setup, method, persona,
+  and evidence.
 - Discover project subtask types and required fields. Use its test-case subtask
   type or standard subtask; never assume a test plugin. Create one subtask per
   independently executable case under `<KEY>` before implementation.
@@ -79,8 +83,10 @@ initial result: Not Run`.
 
 ## 5. Execute and record tests
 
-- After deployment succeeds, re-read the parent story and all subtasks before
-  executing tests. Reconcile the coverage matrix against Jira. If any required
+- After deployment succeeds, refresh the parent story and subtasks with minimal
+  fields first: key, summary, status, updated, issue type, and parent. Fetch full
+  descriptions/comments only when timestamps changed, coverage is unclear, or
+  evidence is needed. Reconcile the coverage matrix against Jira. If any required
   test-case subtask is missing, stop and ask for approval to create the missing
   subtask(s) and run their tests. Do not create subtasks or execute their tests
   until approval is received. After approval, create them under `<KEY>`, use the
@@ -97,13 +103,9 @@ initial result: Not Run`.
   Failed = mismatch; Blocked = missing prerequisite; Not Run = unattempted with
   explanation. Never fabricate results/evidence.
 - Read [test-report-guide.md](test-report-guide.md). Record observed results once
-  in its input JSON; run `npm run story:report -- <input.json> <new-output-directory>`
-  to generate compact results and parent/subtask comments. Post each generated
-  subtask comment through Atlassian MCP; do not manually redraft reports.
-- The reporting phase is mandatory after every successful deployment, including
-  deployments made through `npm run story:publish`. Run the report helper even
-  when all checks pass, and confirm one generated comment per parent and per
-  current test-case subtask before claiming completion.
+  in its input JSON, run the report helper, then post the generated parent and
+  subtask comments. Do not manually redraft reports or read every generated format
+  when `jira-comments.json` is sufficient.
 - Fix in-scope failures; repeat review/publish with applicable authorization.
   Rerun affected cases and relevant regression tests. Preserve execution history
   and tested versions; do not reuse stale results for changed behavior.
@@ -111,9 +113,9 @@ initial result: Not Run`.
 ## 6. Parent report and completion
 
 Use the same helper on successful, failed, or incomplete runs, including publish
-failures. Post its generated parent comment through Atlassian MCP. Exit code 2
-means reports were generated with failures/incomplete work; still post them.
-Exit code 1 means a generation error to fix. Use comment markers to avoid duplicates.
+failures. Exit code 2 means reports were generated with failures/incomplete work;
+still post them. Exit code 1 means a generation error to fix. Use comment markers
+to avoid duplicates.
 
 Counts must reconcile. Testing passes only when all required cases pass for the
 final version; any failure means Failed, otherwise Blocked/Not Run means Incomplete.
@@ -128,11 +130,14 @@ Never expose secrets, deploy to Production, force push, or bypass deployment fai
 
 ## Token-efficient execution
 
-- Request only needed Jira fields when supported. Read subtask IDs/summaries first,
-  then necessary details. Start with relevant/latest execution comments; expand
-  history for requirements/evidence. Preserve pagination needed for full coverage.
+- Prefer direct Atlassian reads over semantic search when keys, IDs, CQL, or JQL are
+  known. Request only needed Jira fields when supported. Read subtask
+  IDs/summaries first, then necessary details. Start with relevant/latest
+  execution comments; expand history for requirements/evidence. Preserve
+  pagination needed for full coverage.
 - Reuse unchanged requirements, issue-type metadata, and Confluence mappings within
-  the run; refresh when changed, stale, or resuming after interruption.
+  the run; refresh only when changed, stale, unclear, or resuming after
+  interruption.
 - Locate files with `rg`; read relevant sections/dependencies. Batch independent
   reads; keep dependent writes sequential.
 - Prefer structured CLI output: status, counts, IDs, failure excerpts. Keep full

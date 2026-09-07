@@ -1,5 +1,6 @@
-javascript;
 const { spawnSync } = require("child_process");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const TARGET_ORG = process.env.SF_TARGET_ORG || "dev-sandbox";
 
@@ -32,12 +33,7 @@ function command(program, args, options = {}) {
 }
 
 function capture(program, args) {
-  const executable =
-    process.platform === "win32" && program === "sf" ? "sf.cmd" : program;
-
-  const result = spawnSync(executable, args, {
-    encoding: "utf8"
-  });
+  const result = captureResult(program, args);
 
   if (result.status !== 0) {
     throw new Error(
@@ -46,6 +42,133 @@ function capture(program, args) {
   }
 
   return result.stdout.trim();
+}
+
+function captureResult(program, args) {
+  const executable =
+    process.platform === "win32" && program === "sf" ? "sf.cmd" : program;
+
+  return spawnSync(executable, args, {
+    encoding: "utf8"
+  });
+}
+
+function writeStoryArtifact(jiraKey, name, content) {
+  const directory = path.join("artifacts", "jira", jiraKey);
+  fs.mkdirSync(directory, { recursive: true });
+
+  const file = path.join(directory, name);
+  fs.writeFileSync(file, content);
+  return file;
+}
+
+function asArray(value) {
+  if (!value) {
+    return [];
+  }
+
+  return Array.isArray(value) ? value : [value];
+}
+
+function deploymentFailures(deploy) {
+  const details = deploy.details || {};
+  const failures = [
+    ...asArray(details.componentFailures),
+    ...asArray(details.runTestResult?.failures),
+    ...asArray(details.runTestResult?.codeCoverageWarnings)
+  ];
+
+  return failures
+    .map((failure) => {
+      const name =
+        failure.fullName ||
+        failure.name ||
+        failure.methodName ||
+        failure.fileName ||
+        "Unknown";
+      const problem =
+        failure.problem ||
+        failure.message ||
+        failure.stackTrace ||
+        failure.warning ||
+        JSON.stringify(failure);
+
+      return `${name}: ${problem}`.replace(/\s+/g, " ").trim();
+    })
+    .filter(Boolean);
+}
+
+function printDeploymentFailure(response, artifact) {
+  const deploy = response.result || {};
+  const failures = deploymentFailures(deploy).slice(0, 10);
+
+  console.error(`
+Salesforce deployment failed.
+Status: ${deploy.status || response.name || "Failed"}
+Deployment ID: ${deploy.id || "Not available"}
+Result artifact: ${artifact}
+Failures:
+${failures.length ? failures.join("\n") : response.message || "No component failure details returned."}
+`);
+}
+
+function printDeploymentSuccess(response, artifact) {
+  const deploy = response.result || {};
+  const deployed = deploy.numberComponentsDeployed ?? "?";
+  const total = deploy.numberComponentsTotal ?? "?";
+
+  console.log(`
+Salesforce deployment succeeded.
+Deployment ID: ${deploy.id || "Not available"}
+Target Org: ${TARGET_ORG}
+Components: ${deployed}/${total}
+Result artifact: ${artifact}
+`);
+}
+
+function getDeploymentId(response) {
+  return response.result?.id || "Not available";
+}
+
+function getDeploymentComponentCount(response) {
+  const deploy = response.result || {};
+  const deployed = deploy.numberComponentsDeployed ?? "?";
+  const total = deploy.numberComponentsTotal ?? "?";
+
+  return `${deployed}/${total}`;
+}
+
+function deploymentFailed(commandResult, response) {
+  return (
+    commandResult.status !== 0 ||
+    response.status !== 0 ||
+    response.result?.success === false
+  );
+}
+
+function parseDeploymentOutput(jiraKey, commandResult) {
+  const output = commandResult.stdout.trim();
+
+  try {
+    const response = JSON.parse(output);
+    const artifact = writeStoryArtifact(
+      jiraKey,
+      "deploy-result.json",
+      JSON.stringify(response, null, 2) + "\n"
+    );
+
+    return { response, artifact };
+  } catch {
+    const artifact = writeStoryArtifact(
+      jiraKey,
+      "deploy-result.txt",
+      [commandResult.stdout, commandResult.stderr].filter(Boolean).join("\n")
+    );
+
+    throw new Error(
+      `Unable to parse Salesforce deployment result. Raw output: ${artifact}`
+    );
+  }
 }
 
 function validateJiraKey(key) {
@@ -237,7 +360,7 @@ Verify these Permission Sets match the Jira personas resolved from Confluence.
   }
 }
 
-function deploySalesforce(files) {
+function deploySalesforce(files, jiraKey) {
   console.log(`
 Salesforce components to deploy
 -------------------------------
@@ -251,29 +374,17 @@ ${files.join("\n")}
   }
 
   args.push("--target-org", TARGET_ORG);
-  args.push("--json");
+  args.push("--concise", "--json");
 
-  const output = capture("sf", args);
+  const commandResult = captureResult("sf", args);
+  const { response, artifact } = parseDeploymentOutput(jiraKey, commandResult);
 
-  let response;
-
-  try {
-    response = JSON.parse(output);
-  } catch {
-    console.log(output);
-    throw new Error("Unable to parse Salesforce deployment result.");
+  if (deploymentFailed(commandResult, response)) {
+    printDeploymentFailure(response, artifact);
+    throw new Error(`Salesforce deployment failed. Full result: ${artifact}`);
   }
 
-  if (response.status !== 0) {
-    console.error(JSON.stringify(response, null, 2));
-
-    throw new Error("Salesforce deployment failed.");
-  }
-
-  console.log(`
-Salesforce deployment succeeded.
-Target Org: ${TARGET_ORG}
-`);
+  printDeploymentSuccess(response, artifact);
 
   return response;
 }
@@ -323,7 +434,7 @@ Target Org: ${TARGET_ORG}
    *
    * If Salesforce fails, execution stops here.
    */
-  deploySalesforce(salesforceFiles);
+  const deployment = deploySalesforce(salesforceFiles, jiraKey);
 
   /*
    * STEP 4
@@ -368,6 +479,8 @@ Status: SUCCESS
 Salesforce Org: ${TARGET_ORG}
 Branch: ${currentBranch}
 Commit: ${commit}
+Deployment ID: ${getDeploymentId(deployment)}
+Components Deployed: ${getDeploymentComponentCount(deployment)}
 
 Fields:
 ${fieldFiles.length ? fieldFiles.join("\n") : "None"}
@@ -383,9 +496,6 @@ ${flowFiles.length ? flowFiles.join("\n") : "None"}
 
 Other Salesforce Metadata:
 ${otherFiles.length ? otherFiles.join("\n") : "None"}
-
-All Components:
-${salesforceFiles.join("\n")}
 
 === END_STORY_RESULT ===
 `);

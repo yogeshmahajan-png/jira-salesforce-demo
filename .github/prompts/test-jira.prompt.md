@@ -1,0 +1,44 @@
+---
+name: test-jira
+description: Create or reconcile Jira test-case subtasks, run tests, and post reports for a completed Salesforce Jira story
+argument-hint: "Jira key, for example SF-125"
+agent: agent
+---
+
+Test ${input:jiraKey:Enter Jira key, for example SF-125}.
+Use the resolved key as `<KEY>`. This command is for a story whose development
+and deployment/publish step is already complete.
+
+## Workflow
+
+1. Read `<KEY>` directly through Atlassian MCP. Search only when no exact key is
+   supplied. Request minimal fields first: key, summary, status, updated, issue
+   type, parent, subtasks, acceptance criteria, and latest relevant comments.
+   Fetch full descriptions/comments only when needed for AC coverage or evidence.
+2. Build or refresh the coverage matrix: `AC -> TC ID -> subtask key`.
+3. Reuse existing equivalent test-case subtasks. If any AC lacks a test-case
+   subtask, show the missing subtasks and ask for approval before creating them.
+   Do not create subtasks or execute tests until approval is received.
+4. After approval, create missing standard Subtask items under `<KEY>` unless a
+   project-specific test-case subtask type is available. Verify each returned
+   parent relationship and use only real Jira keys returned by Jira.
+5. Execute required tests for the deployed version. Use the smallest relevant
+   existing commands, for example:
+   - `npm run test:report`
+   - `npm run test:unit -- --findRelatedTests <changed-lwc-file-or-test>`
+   - required development-org API/UI checks for persona access or metadata
+6. Continue independent test cases after failures. Mark each case as Passed,
+   Failed, Blocked, or Not Run with actual evidence. Never fabricate evidence.
+7. Copy `scripts/test-results.example.json` to
+   `artifacts/jira/<KEY>/<RUN>-input.json`, replace all example values with the
+   real story, current AC list, subtask keys, deployment details, results, and
+   evidence.
+8. Run:
+   `npm run story:report -- artifacts/jira/<KEY>/<RUN>-input.json artifacts/jira/<KEY>/<RUN>`
+9. Read the concise stdout and `jira-comments.json`. Post each generated comment
+   to its Jira issue through Atlassian MCP, using markers to avoid duplicates.
+10. Summarize deployment status, test totals, failed/blocked cases, report
+    artifacts, and posted Jira comments.
+
+Follow [test-report-guide.md](test-report-guide.md) for report input rules and
+posting behavior. Do not transition Jira statuses unless explicitly requested.
