@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Gold_Customer_Requires_Renewal_Date</fullName>
+    <active>true</active>
+    <errorConditionFormula
+  >ISPICKVAL(Customer_Tier__c, &quot;Gold&quot;) &amp;&amp; ISBLANK(Renewal_Date__c)</errorConditionFormula>
+    <errorDisplayField>Renewal_Date__c</errorDisplayField>
+    <errorMessage
+  >Renewal Date is required when Customer Tier is Gold.</errorMessage>
+</ValidationRule>
