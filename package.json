@@ -16,7 +16,9 @@
     "prepare": "husky || true",
     "precommit": "lint-staged",
     "story:start": "node scripts/story.js start",
-    "story:publish": "node scripts/story.js publish"
+    "story:publish": "node scripts/story.js publish",
+    "story:report": "node scripts/test-report.js",
+    "test:report": "node --test scripts/test-report.test.js"
   },
   "devDependencies": {
     "@lwc/eslint-plugin-lwc": "^3.1.0",

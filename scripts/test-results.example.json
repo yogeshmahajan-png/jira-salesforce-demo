@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "story": "SF-125",
+  "jiraUrl": "https://example.atlassian.net",
+  "run": {
+    "id": "run-01",
+    "time": "2026-09-07T10:00:00Z",
+    "org": "dev-sandbox",
+    "branch": "feature/SF-125",
+    "commit": "pending"
+  },
+  "deployment": {
+    "status": "Not Run",
+    "id": "Not available",
+    "details": "Awaiting reviewed deployment",
+    "components": ["Account.Customer_Tier__c"]
+  },
+  "security": [],
+  "criteria": ["AC-01"],
+  "cases": [
+    {
+      "id": "TC-01",
+      "key": "SF-126",
+      "ac": ["AC-01"],
+      "expected": "Authorized persona can save the requested field value",
+      "actual": "Not executed: deployment pending",
+      "method": "Development-org UI check as the required persona",
+      "result": "Not Run",
+      "evidence": [],
+      "followUp": "Deploy and execute this case",
+      "cleanup": "No test data created"
+    }
+  ]
+}
