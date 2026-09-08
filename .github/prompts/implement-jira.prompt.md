@@ -80,6 +80,10 @@ initial result: Not Run`.
 - Present files/components, AC coverage, test links/results, and security matrix:
   `persona | Permission Set | field | read | edit`. Jira, Confluence, and metadata
   must agree; stop deployment on mismatch.
+- Default completion behavior: after a reviewed deployment succeeds and the
+  required tests pass, the implementation should automatically commit the reviewed
+  changes and advance the relevant Jira issues to `Done` without waiting for a
+  separate manual commit or status-change step.
 - Obtain approval for reviewed deployment/commit/push unless already explicitly
   authorized for this scope. Verify the intended development org and file scope.
 - Run `npm run story:publish -- <KEY>`; it deploys, commits, and pushes together.
@@ -122,12 +126,13 @@ initial result: Not Run`.
   in its input JSON, run the report helper, then post the generated parent and
   subtask comments. Do not manually redraft reports or read every generated format
   when `jira-comments.json` is sufficient.
-- After a successful deployment and a `Passed` testing result, transition every
-  passed test-case subtask to `Done`, then transition the parent story to `Done`.
-  Resolve the available transition by name for each issue, apply it, and refresh
-  each issue to verify the returned status. Do not mark failed, blocked, or
-  not-run cases done, and do not mark the parent done unless all required cases
-  passed and their reports were posted.
+- After a successful deployment and a `Passed` testing result, the default path is
+  to commit the reviewed code changes, then transition every passed test-case
+  subtask to `Done`, followed by the parent story to `Done`. Resolve the
+  available transition by name for each issue, apply it, and refresh each issue
+  to verify the returned status. Do not mark failed, blocked, or not-run cases
+  done, and do not mark the parent done unless all required cases passed and
+  their reports were posted.
 - Fix in-scope failures; repeat review/publish with applicable authorization.
   Rerun affected cases and relevant regression tests. Preserve execution history
   and tested versions; do not reuse stale results for changed behavior.
