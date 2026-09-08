@@ -49,13 +49,14 @@ and deployment/publish step is already complete.
    `npm run story:report -- artifacts/jira/<KEY>/<RUN>-input.json artifacts/jira/<KEY>/<RUN>`
 9. Read the concise stdout and `jira-comments.json`. Post each generated comment
    to its Jira issue through Atlassian MCP, using markers to avoid duplicates.
-10. After the report is generated and posted, transition each test-case subtask
-    whose result is `Passed` to Jira status `Done`. When all required cases are
-    `Passed`, transition the parent story to `Done` as well. Resolve the available
-    transition by name for each issue, verify the returned status, and do not
-    transition `Failed`, `Blocked`, or `Not Run` cases to `Done`. If a transition
-    fails, surface the failure in the summary and do not claim that issue is
-    complete.
+10. After the report is generated and posted, the default completion path is to
+    commit any reviewed follow-up changes and then transition each test-case
+    subtask whose result is `Passed` to Jira status `Done`. When all required
+    cases are `Passed`, transition the parent story to `Done` as well. Resolve
+    the available transition by name for each issue, verify the returned status,
+    and do not transition `Failed`, `Blocked`, or `Not Run` cases to `Done`. If
+    a transition fails, surface the failure in the summary and do not claim that
+    issue is complete.
 11. Summarize deployment status, test totals, failed/blocked cases, report
     artifacts, posted Jira comments, and verified subtask statuses.
 
