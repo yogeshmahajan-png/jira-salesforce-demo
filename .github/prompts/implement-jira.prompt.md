@@ -106,6 +106,12 @@ initial result: Not Run`.
   in its input JSON, run the report helper, then post the generated parent and
   subtask comments. Do not manually redraft reports or read every generated format
   when `jira-comments.json` is sufficient.
+- After a successful deployment and a `Passed` testing result, transition every
+  passed test-case subtask to `Done`, then transition the parent story to `Done`.
+  Resolve the available transition by name for each issue, apply it, and refresh
+  each issue to verify the returned status. Do not mark failed, blocked, or
+  not-run cases done, and do not mark the parent done unless all required cases
+  passed and their reports were posted.
 - Fix in-scope failures; repeat review/publish with applicable authorization.
   Rerun affected cases and relevant regression tests. Preserve execution history
   and tested versions; do not reuse stale results for changed behavior.
@@ -124,7 +130,9 @@ successful publishing, required testing, and confirmed Jira reports.
 
 If a Jira write fails, retain its pending payload locally, report the error, and
 check whether it succeeded before retrying. Never claim unconfirmed updates.
-Do not transition stories/subtasks unless explicitly requested; results are comments.
+Do not transition stories/subtasks before deployment and testing are complete.
+Successful runs transition passed test-case subtasks and the parent story to
+`Done`; failed or incomplete runs leave statuses unchanged and report the reason.
 Obtain approval before creating/merging a PR unless already authorized.
 Never expose secrets, deploy to Production, force push, or bypass deployment failures.
 
