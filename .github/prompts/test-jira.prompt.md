@@ -9,6 +9,18 @@ Test ${input:jiraKey:Enter Jira key, for example SF-125}.
 Use the resolved key as `<KEY>`. This command is for a story whose development
 and deployment/publish step is already complete.
 
+## Output and tool efficiency
+
+- Request minimal Jira fields first: `key,summary,status,updated,issuetype,parent,subtasks`.
+  Fetch full descriptions/comments only for changed, unclear, or evidence-bearing
+  items.
+- Cache the cloud ID, coverage matrix, transition IDs, and unchanged deployment
+  details. Do not repeat equivalent Jira or Confluence reads.
+- Batch independent Jira reads and keep shell output concise. Save full JSON to
+  ignored artifacts; report only status, IDs, counts, and failure excerpts.
+- Read only the report helper summary and needed `jira-comments.json` entries;
+  never dump full ADF payloads or full Jira objects unless troubleshooting.
+
 ## Workflow
 
 1. Read `<KEY>` directly through Atlassian MCP. Search only when no exact key is

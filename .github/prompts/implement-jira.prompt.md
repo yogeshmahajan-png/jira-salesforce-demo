@@ -8,6 +8,22 @@ agent: agent
 Implement ${input:jiraKey:Enter Jira key, for example SF-125}.
 Use the resolved key as `<KEY>`. Follow these phases in order.
 
+## Output and tool efficiency
+
+- Keep tool calls targeted and outputs compact. For known Jira keys, request only
+  `key,summary,status,updated,issuetype,parent,subtasks`; fetch descriptions or
+  comments only when requirements, coverage, or evidence requires them.
+- Cache the cloud ID, issue-type metadata, persona mapping, transition IDs, and
+  unchanged requirements for this run. Do not repeat equivalent reads.
+- Batch independent reads. Use narrow file ranges and bounded searches.
+- Prefer concise command output (`git status --short`, `git diff --check`, filtered
+  Salesforce status). Save full deployment/test JSON to ignored artifacts and report
+  only status, IDs, counts, and failure excerpts.
+- Do not print full ADF, full Jira objects, full org listings, or generated reports.
+  Read only the concise report summary and required `jira-comments.json` entries.
+- Maintain a compact handoff containing the story key, org, branch/commit,
+  deployment ID, test-case keys/results, and next action.
+
 ## 1. Requirements and security
 
 - Read the exact story using Atlassian MCP; search only when no key is supplied.

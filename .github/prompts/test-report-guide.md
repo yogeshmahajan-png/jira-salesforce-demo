@@ -5,6 +5,17 @@ The helper runs locally with Node and no additional dependencies or Jira credent
 It formats supplied observations; it does not execute tests, verify evidence, check
 Jira parent relationships, or post comments. Copilot performs those actions.
 
+## Compact execution rules
+
+- Keep one compact run handoff: run ID, org, branch/commit, deployment ID/status,
+  component count, test-case keys/results, and next action.
+- Store detailed CLI output in ignored artifacts, but pass only sanitized summaries,
+  IDs, accessible links, and failure excerpts into Jira comments.
+- Read `jira-comments.json` selectively. Do not read or echo complete ADF payloads,
+  full Jira responses, or full deployment/org-list JSON unless troubleshooting.
+- Reuse already verified Jira and deployment data; refresh only status and updated
+  fields when checking transitions.
+
 1. Before collecting results, refresh the parent story and subtasks through
    Atlassian MCP after deployment succeeds. Use minimal fields first: key,
    summary, status, updated, issue type, and parent. Fetch full
