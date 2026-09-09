@@ -20,6 +20,10 @@ Jira
 
 Never deploy to Production.
 
+Use `CopilotJiraOrg` as the default development org for deployment, retrieval,
+and testing unless the user explicitly provides another authorized development
+org.
+
 Never invent requirements.
 
 Never grant more Salesforce access than Jira requests.

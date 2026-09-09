@@ -5,7 +5,7 @@
   "run": {
     "id": "run-01",
     "time": "2026-09-07T10:00:00Z",
-    "org": "dev-sandbox",
+    "org": "CopilotJiraOrg",
     "branch": "feature/SF-125",
     "commit": "pending"
   },

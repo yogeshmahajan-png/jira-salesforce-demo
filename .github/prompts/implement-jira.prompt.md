@@ -70,6 +70,10 @@ initial result: Not Run`.
   configuration files for references. Use semantic symbol usages where
   available and targeted `rg` searches for the API name and field label.
   Record each reference and its required update in the implementation plan.
+  If any dependency would require changing an existing component, test, rule,
+  flow, layout, permission, or other out-of-scope metadata, stop implementation
+  before editing that dependency, add a Jira comment listing the dependency and
+  requested change, and obtain explicit confirmation before proceeding.
   Do not delete the metadata until every in-scope reference is updated or
   confirmed intentionally unaffected; if a reference cannot be resolved, stop
   and report it rather than guessing.
