@@ -3,8 +3,8 @@
     <fullName>Gold_Customer_Requires_Renewal_Date</fullName>
     <active>true</active>
     <errorConditionFormula
-  >ISPICKVAL(Customer_Tier1__c, &quot;Gold&quot;) &amp;&amp; ISBLANK(RenewalNew_Date__c)</errorConditionFormula>
+  >ISPICKVAL(Customer_Tier1__c, &quot;Silver&quot;) &amp;&amp; ISBLANK(RenewalNew_Date__c)</errorConditionFormula>
     <errorDisplayField>RenewalNew_Date__c</errorDisplayField>
     <errorMessage
-  >Renewal Date is required when Customer Tier is Gold.</errorMessage>
+  >Renewal Date is required when Customer Tier is Silver.</errorMessage>
 </ValidationRule>
