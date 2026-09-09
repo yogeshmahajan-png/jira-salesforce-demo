@@ -20,9 +20,23 @@ Jira
 
 Never deploy to Production.
 
+Use `CopilotJiraOrg` as the default development org for deployment, retrieval,
+and testing unless the user explicitly provides another authorized development
+org.
+
 Never invent requirements.
 
 Never grant more Salesforce access than Jira requests.
+
+Minimize credit and API usage without weakening delivery controls:
+
+- Use direct Atlassian reads when identifiers are known.
+- Prefer Jira issue reads by key, targeted JQL, and targeted Confluence CQL over semantic search.
+- Use semantic/Rovo search only when no Jira key, page title, CQL, or JQL can answer the question.
+- Fetch each Jira issue, Confluence mapping page, or related issue list once per story and reuse the result.
+- Prefer local file inspection before remote Salesforce retrieval.
+- Retrieve only exact missing Salesforce metadata from the development org.
+- Do not launch extra agents for simple Jira reads, Confluence lookups, file searches, or local metadata inspection.
 
 ---
 
@@ -33,6 +47,9 @@ When the user provides a Jira key such as:
 SF-125
 
 Use Atlassian MCP to retrieve the Jira issue.
+
+Use a direct Jira issue read for the provided key. Do not use semantic search when
+the key is known.
 
 Extract:
 
@@ -58,7 +75,10 @@ If a material requirement is ambiguous, stop rather than guessing.
 
 # 2. Resolve Salesforce Security
 
-If Jira mentions personas such as:
+Resolve Salesforce security only when Jira requires security, permission, or
+field-level-access changes.
+
+If security changes are required and Jira mentions personas such as:
 
 - Standard User
 - Admin
@@ -71,6 +91,10 @@ use Atlassian MCP to search Confluence.
 Find the approved page:
 
 Salesforce Persona Permission Set Mapping
+
+Use targeted Confluence CQL for the exact page title before considering broader
+search. Fetch the approved mapping page once, then reuse the resolved mappings
+throughout the story.
 
 Resolve:
 
@@ -130,6 +154,10 @@ force-app/main/default
 
 Before modifying anything determine whether requested metadata already exists.
 
+Inspect local metadata first. Use targeted searches under the relevant object,
+class, trigger, flow, permission set, and test paths instead of broad repository
+or remote searches.
+
 Check:
 
 - objects
@@ -158,6 +186,9 @@ sf project retrieve start \
 --target-org CopilotJiraOrg
 
 Do not create a new Permission Set merely because it is missing locally.
+
+Retrieve only exact metadata that is required for the story and missing locally.
+Do not perform broad package, object, profile, or permission-set retrieves.
 
 ---
 
@@ -290,6 +321,10 @@ TC-02
 TC-03
 ...
 
+Keep the test-case set focused on Jira requirements, changed behavior, and
+required security evidence. Do not create redundant test cases that verify the
+same requirement in the same way.
+
 ---
 
 # 11. Create Jira Test Subtasks
@@ -297,6 +332,9 @@ TC-03
 Use Atlassian MCP.
 
 Create one Jira subtask under the parent Jira story for each test case.
+
+Before creating subtasks, query existing test subtasks once using targeted JQL.
+Create only missing subtasks and reuse existing matching subtasks.
 
 Naming convention:
 
@@ -363,6 +401,8 @@ git status
 
 git diff
 
+Use non-paged git output.
+
 Summarize:
 
 - files created
@@ -406,7 +446,21 @@ Do not manually bypass the script.
 
 Use Salesforce CLI tests where applicable.
 
-For Apex:
+For Apex, when changed or directly relevant test classes are known:
+
+sf apex run test \
+--test-level RunSpecifiedTests \
+--tests <ChangedOrRelevantTestClassNames> \
+--target-org CopilotJiraOrg \
+--result-format json \
+--code-coverage \
+--wait 20
+
+Use targeted Apex test classes for changed Apex or directly affected behavior.
+Use RunLocalTests only when required by deployment policy, when the publish script
+requires it, or when no reliable targeted test set exists.
+
+Fallback:
 
 sf apex run test \
 --test-level RunLocalTests \
@@ -414,6 +468,11 @@ sf apex run test \
 --result-format json \
 --code-coverage \
 --wait 20
+
+If `npm run story:publish -- <JIRA-KEY>` already deployed and produced sufficient
+TEST_RESULT evidence for the required tests, do not rerun equivalent tests.
+Run additional Salesforce CLI tests only when required evidence, functional
+coverage, or Apex coverage is missing.
 
 For metadata changes verify:
 
@@ -455,6 +514,10 @@ Never mark an unexecuted test PASS.
 
 Use Atlassian MCP.
 
+Update each test subtask once after final execution unless an earlier blocking
+failure must be reported. Avoid incremental comments that duplicate the final
+test result.
+
 Update each test subtask with:
 
 Test Case:
@@ -494,6 +557,9 @@ Do not:
 Update Jira test subtasks appropriately.
 
 Post parent Jira comment with:
+
+Post a single failure report unless the developer explicitly asks for additional
+updates.
 
 Deployment:
 FAILED
@@ -539,6 +605,8 @@ from the script output.
 # 20. Final Jira Report
 
 Use Atlassian MCP to comment on the parent Jira story.
+
+Post one consolidated parent Jira report after final test-subtask reconciliation.
 
 Use this structure:
 

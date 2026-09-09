@@ -1,11 +1,11 @@
 @isTest
 private class GoldCustomerRenewalValidationRuleTest {
   @isTest
-  static void goldCustomerWithoutRenewalDateIsRejected() {
+  static void silverCustomerWithoutRenewalDateIsRejected() {
     Database.SaveResult result = Database.insert(
       new Account(
-        Name = 'Gold customer without renewal date',
-        Customer_Tier1__c = 'Gold'
+        Name = 'Silver customer without renewal date',
+        Customer_Tier1__c = 'Silver'
       ),
       false
     );
@@ -13,11 +13,11 @@ private class GoldCustomerRenewalValidationRuleTest {
     System.assertEquals(
       false,
       result.isSuccess(),
-      'Gold accounts must have a renewal date.'
+      'Silver accounts must have a renewal date.'
     );
     System.assertEquals(1, result.getErrors().size());
     System.assertEquals(
-      'Renewal Date is required when Customer Tier is Gold.',
+      'Renewal Date is required when Customer Tier is Silver.',
       result.getErrors()[0].getMessage()
     );
     System.assertEquals(
@@ -27,11 +27,11 @@ private class GoldCustomerRenewalValidationRuleTest {
   }
 
   @isTest
-  static void goldCustomerWithRenewalDateIsAccepted() {
+  static void silverCustomerWithRenewalDateIsAccepted() {
     Database.SaveResult result = Database.insert(
       new Account(
-        Name = 'Gold customer with renewal date',
-        Customer_Tier1__c = 'Gold',
+        Name = 'Silver customer with renewal date',
+        Customer_Tier1__c = 'Silver',
         RenewalNew_Date__c = Date.today().addDays(30)
       ),
       false
@@ -41,15 +41,37 @@ private class GoldCustomerRenewalValidationRuleTest {
   }
 
   @isTest
-  static void nonGoldCustomerWithoutRenewalDateIsAccepted() {
+  static void bronzeCustomerWithoutRenewalDateIsAccepted() {
     Database.SaveResult result = Database.insert(
       new Account(
-        Name = 'Silver customer without renewal date',
-        Customer_Tier1__c = 'Silver'
+        Name = 'Bronze customer without renewal date',
+        Customer_Tier1__c = 'Bronze'
       ),
       false
     );
 
     System.assertEquals(true, result.isSuccess());
+  }
+
+  @isTest
+  static void removedGoldValueIsRejected() {
+    Database.SaveResult result = Database.insert(
+      new Account(
+        Name = 'Account with removed Gold tier',
+        Customer_Tier1__c = 'Gold',
+        RenewalNew_Date__c = Date.today().addDays(30)
+      ),
+      false
+    );
+
+    System.assertEquals(
+      false,
+      result.isSuccess(),
+      'Gold must no longer be accepted for Customer Tier1.'
+    );
+    System.assertEquals(
+      StatusCode.INVALID_OR_NULL_FOR_RESTRICTED_PICKLIST,
+      result.getErrors()[0].getStatusCode()
+    );
   }
 }

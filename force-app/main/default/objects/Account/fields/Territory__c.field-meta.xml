@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Customer_Tier1__c</fullName>
-    <label>Customer Tier1</label>
+    <fullName>Territory__c</fullName>
+    <label>Territory</label>
     <required>false</required>
     <trackHistory>false</trackHistory>
     <type>Picklist</type>
@@ -10,14 +10,19 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>Silver</fullName>
+                <fullName>India</fullName>
                 <default>false</default>
-                <label>Silver</label>
+                <label>India</label>
             </value>
             <value>
-                <fullName>Bronze</fullName>
+                <fullName>USA</fullName>
                 <default>false</default>
-                <label>Bronze</label>
+                <label>USA</label>
+            </value>
+            <value>
+                <fullName>Brazil</fullName>
+                <default>false</default>
+                <label>Brazil</label>
             </value>
         </valueSetDefinition>
     </valueSet>

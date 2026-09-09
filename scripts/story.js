@@ -2,7 +2,7 @@ const { spawnSync } = require("child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const TARGET_ORG = process.env.SF_TARGET_ORG || "dev-sandbox";
+const TARGET_ORG = process.env.SF_TARGET_ORG || "CopilotJiraOrg";
 
 function command(program, args, options = {}) {
   const executable =
