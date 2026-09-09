@@ -26,6 +26,10 @@ org.
 
 Never invent requirements.
 
+If Jira asks to add a field or other Salesforce metadata but does not explicitly
+state the intended persona(s)/Permission Set access and page-layout placement,
+add a Jira comment requesting confirmation and stop before implementation.
+
 Never grant more Salesforce access than Jira requests.
 
 Minimize credit and API usage without weakening delivery controls:
