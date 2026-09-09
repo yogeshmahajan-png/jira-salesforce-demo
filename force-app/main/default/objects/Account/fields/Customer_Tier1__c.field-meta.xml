@@ -10,6 +10,11 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
+                <fullName>Gold</fullName>
+                <default>false</default>
+                <label>Gold</label>
+            </value>
+            <value>
                 <fullName>Silver</fullName>
                 <default>false</default>
                 <label>Silver</label>
