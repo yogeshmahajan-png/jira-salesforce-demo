@@ -12,6 +12,7 @@ function command(program, args, options = {}) {
 
   const result = spawnSync(executable, args, {
     encoding: "utf8",
+    shell: process.platform === "win32" && program === "sf",
     stdio: options.capture ? "pipe" : "inherit"
   });
 
@@ -49,7 +50,8 @@ function captureResult(program, args) {
     process.platform === "win32" && program === "sf" ? "sf.cmd" : program;
 
   return spawnSync(executable, args, {
-    encoding: "utf8"
+    encoding: "utf8",
+    shell: process.platform === "win32" && program === "sf"
   });
 }
 
