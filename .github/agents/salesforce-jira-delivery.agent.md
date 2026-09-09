@@ -149,13 +149,13 @@ Do not modify unrelated metadata.
 
 # 5. Retrieve Required Metadata
 
-If a Permission Set identified from Confluence does not exist locally, retrieve it from dev-sandbox.
+If a Permission Set identified from Confluence does not exist locally, retrieve it from CopilotJiraOrg.
 
 Example:
 
 sf project retrieve start \
 --metadata PermissionSet:Sales_Standard_User \
---target-org dev-sandbox
+--target-org CopilotJiraOrg
 
 Do not create a new Permission Set merely because it is missing locally.
 
@@ -410,7 +410,7 @@ For Apex:
 
 sf apex run test \
 --test-level RunLocalTests \
---target-org dev-sandbox \
+--target-org CopilotJiraOrg \
 --result-format json \
 --code-coverage \
 --wait 20
@@ -473,7 +473,7 @@ Evidence:
 ...
 
 Salesforce Org:
-dev-sandbox
+CopilotJiraOrg
 
 Include Apex test result and coverage when applicable.
 
@@ -545,7 +545,7 @@ Use this structure:
 Implementation & Testing Report
 
 Salesforce Org:
-dev-sandbox
+CopilotJiraOrg
 
 Deployment:
 SUCCESS
