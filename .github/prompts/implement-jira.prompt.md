@@ -63,6 +63,16 @@ initial result: Not Run`.
   reuse a verified matching branch if present.
 - Modify only story metadata under `force-app/main/default` and necessary tests.
   Reuse existing components and preserve unrelated work.
+- Before removing, renaming, or deleting any Salesforce metadata, identify the
+  exact Metadata API name and run a repository-wide dependency scan. Check
+  validation rules, formulas, flows, layouts, permissions, reports/list views,
+  Apex classes/tests, LWC JavaScript/HTML, Aura components/controllers, and
+  configuration files for references. Use semantic symbol usages where
+  available and targeted `rg` searches for the API name and field label.
+  Record each reference and its required update in the implementation plan.
+  Do not delete the metadata until every in-scope reference is updated or
+  confirmed intentionally unaffected; if a reference cannot be resolved, stop
+  and report it rather than guessing.
 - Use `permissionsets/<API>.permissionset-meta.xml`. If missing locally, retrieve
   `PermissionSet:<API>` from the development org; stop if absent there too.
   Merge required permissions, preserving unrelated entries. Do not substitute
@@ -96,6 +106,10 @@ initial result: Not Run`.
   Use exact Metadata API names, including layout `%28`/`%29` encoding.
   This only deploys: verify success before authorized commit/push; do not then
   use a publish path that cannot handle deletions.
+- For every destructive change, include the completed dependency-scan result in
+  the review: searched API names, reference categories checked, references
+  changed, and references confirmed absent or unaffected. The scan is a
+  deployment gate; do not publish destructive metadata with an incomplete scan.
 - On publish failure, stop downstream publishing; do not bypass or manually
   commit/push. Report the actual failed stage, reason, components/Permission Sets,
   org, and any completed deployment/commit. Mark prevented cases Blocked in
