@@ -389,12 +389,27 @@ function writeDeploymentManifest(files, jiraKey) {
     if (match) {
       type = "CustomField";
       member = `${match[1]}.${match[2]}`;
+    } else if (
+      file.match(
+        /\/objects\/[^/]+\/validationRules\/[^/]+\.validationRule-meta\.xml$/
+      )
+    ) {
+      const validationMatch = file.match(
+        /\/objects\/([^/]+)\/validationRules\/([^/]+)\.validationRule-meta\.xml$/
+      );
+      type = "ValidationRule";
+      member = `${validationMatch[1]}.${validationMatch[2]}`;
     } else if (file.includes("/permissionsets/")) {
       type = "PermissionSet";
       member = path.basename(file, ".permissionset-meta.xml");
     } else if (file.includes("/layouts/")) {
       type = "Layout";
       member = path.basename(file, ".layout-meta.xml");
+    } else if (file.includes("/classes/")) {
+      type = "ApexClass";
+      member = file.endsWith(".cls")
+        ? path.basename(file, ".cls")
+        : path.basename(file, ".cls-meta.xml");
     } else {
       throw new Error(
         `Cannot map Salesforce file to deployment metadata: ${file}`
