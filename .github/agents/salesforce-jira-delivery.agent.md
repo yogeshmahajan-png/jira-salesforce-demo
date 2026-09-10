@@ -433,12 +433,12 @@ npm run story:publish -- <JIRA-KEY>
 The script controls:
 
 Salesforce deployment
-→ automated testing
 → Git staging
 → Git commit
 → Git push
 
-Do not manually bypass the script.
+It does not execute or replace acceptance-test execution. Do not manually
+bypass the deployment, staging, commit, or push sequence.
 
 ---
 
@@ -469,8 +469,8 @@ sf apex run test \
 --code-coverage \
 --wait 20
 
-If `npm run story:publish -- <JIRA-KEY>` already deployed and produced sufficient
-TEST_RESULT evidence for the required tests, do not rerun equivalent tests.
+If the required tests were already executed against the published version and
+their evidence was captured in the report input, do not rerun equivalent tests.
 Run additional Salesforce CLI tests only when required evidence, functional
 coverage, or Apex coverage is missing.
 
@@ -487,26 +487,29 @@ Deployment success alone does not mean all functional tests passed.
 
 # 16. Test Status Rules
 
-Each test result must be:
+Each test result must be one of:
 
-PASS
+Passed
 
-FAIL
+Failed
 
-or
+Blocked
 
-BLOCKED
+Not Run
 
-PASS:
+Passed:
 Expected result was verified.
 
-FAIL:
+Failed:
 Actual result differs from expected result.
 
-BLOCKED:
+Blocked:
 Test could not be executed because of dependency, environment, data, or permission constraints.
 
-Never mark an unexecuted test PASS.
+Not Run:
+The test was not attempted; explain why it was not run.
+
+Never mark an unexecuted test Passed.
 
 ---
 
@@ -524,7 +527,7 @@ Test Case:
 TC-01
 
 Status:
-PASS / FAIL / BLOCKED
+Passed / Failed / Blocked / Not Run
 
 Expected Result:
 ...
@@ -583,7 +586,7 @@ Tests Blocked:
 
 # 19. Successful Completion
 
-If deployment and required tests pass:
+If deployment and all required tests pass:
 
 allow story.js to:
 
@@ -596,9 +599,9 @@ STORY_RESULT
 
 and:
 
-TEST_RESULT
-
-from the script output.
+the generated `test-results.json` and `jira-comments.json` artifacts from
+`npm run story:report`. `story.js` does not emit `TEST_RESULT`; acceptance-test
+results come from the test runner and report helper.
 
 ---
 
@@ -654,9 +657,12 @@ Test Results:
 
 Overall Result:
 
-PASS / FAIL / BLOCKED
+Passed / Failed / Blocked / Incomplete
 
-Do not transition the Jira story unless explicitly requested.
+After reports are posted, transition passed test-case subtasks to `Done`.
+Transition the parent story to `Done` only when every required case passed and
+all required reports were posted and verified. Leave failed, blocked, and
+not-run work in its current status.
 
 ---
 
