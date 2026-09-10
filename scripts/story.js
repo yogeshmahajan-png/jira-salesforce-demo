@@ -49,9 +49,23 @@ function captureResult(program, args) {
   const executable =
     process.platform === "win32" && program === "sf" ? "sf.cmd" : program;
 
+  if (process.platform === "win32" && program === "sf") {
+    const commandLine = [
+      executable,
+      ...args.map((arg) => {
+        const value = String(arg).replaceAll('"', '""');
+        return /\s/.test(value) ? `"${value}"` : value;
+      })
+    ].join(" ");
+
+    return spawnSync(process.env.ComSpec, ["/d", "/s", "/c", commandLine], {
+      encoding: "utf8"
+    });
+  }
+
   return spawnSync(executable, args, {
     encoding: "utf8",
-    shell: process.platform === "win32" && program === "sf"
+    shell: false
   });
 }
 
@@ -362,6 +376,50 @@ Verify these Permission Sets match the Jira personas resolved from Confluence.
   }
 }
 
+function writeDeploymentManifest(files, jiraKey) {
+  const membersByType = new Map();
+
+  for (const file of files) {
+    let type;
+    let member;
+    let match = file.match(
+      /\/objects\/([^/]+)\/fields\/([^/]+)\.field-meta\.xml$/
+    );
+
+    if (match) {
+      type = "CustomField";
+      member = `${match[1]}.${match[2]}`;
+    } else if (file.includes("/permissionsets/")) {
+      type = "PermissionSet";
+      member = path.basename(file, ".permissionset-meta.xml");
+    } else if (file.includes("/layouts/")) {
+      type = "Layout";
+      member = path.basename(file, ".layout-meta.xml");
+    } else {
+      throw new Error(
+        `Cannot map Salesforce file to deployment metadata: ${file}`
+      );
+    }
+
+    if (!membersByType.has(type)) {
+      membersByType.set(type, []);
+    }
+    membersByType.get(type).push(member);
+  }
+
+  const types = [...membersByType.entries()]
+    .map(
+      ([type, members]) =>
+        `    <types>\n${members
+          .sort()
+          .map((member) => `        <members>${member}</members>`)
+          .join("\n")}\n        <name>${type}</name>\n    </types>`
+    )
+    .join("\n");
+  const manifest = `<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n${types}\n    <version>67.0</version>\n</Package>\n`;
+  return writeStoryArtifact(jiraKey, "deploy-manifest.xml", manifest);
+}
+
 function deploySalesforce(files, jiraKey) {
   console.log(`
 Salesforce components to deploy
@@ -369,12 +427,8 @@ Salesforce components to deploy
 ${files.join("\n")}
 `);
 
-  const args = ["project", "deploy", "start"];
-
-  for (const file of files) {
-    args.push("--source-dir", file);
-  }
-
+  const manifest = writeDeploymentManifest(files, jiraKey);
+  const args = ["project", "deploy", "start", "--manifest", manifest];
   args.push("--target-org", TARGET_ORG);
   args.push("--concise", "--json");
 
