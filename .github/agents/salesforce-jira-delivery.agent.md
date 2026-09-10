@@ -592,6 +592,7 @@ allow story.js to:
 
 - commit
 - push
+- Create pull request
 
 Then read:
 
