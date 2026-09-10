@@ -1,200 +1,74 @@
 ---
 name: implement-jira
-description: Deliver a Salesforce Jira story with test-case subtasks and testing reports
+description: Execute a Salesforce Jira story using the Salesforce Jira Delivery agent workflow
 argument-hint: "Jira key, for example SF-125"
-agent: agent
+agent: Salesforce Jira Delivery
 ---
 
-Implement ${input:jiraKey:Enter Jira key, for example SF-125}.
-Use the resolved key as `<KEY>`. Follow these phases in order.
+Implement ${input:jiraKey:Enter Jira key}.
 
-## Output and tool efficiency
+Use the resolved key as `<KEY>`. Follow the Salesforce Jira Delivery agent
+instructions as the single source of truth for Jira and Confluence reads,
+security mapping, Salesforce conventions, deployment approval, Git operations,
+safety controls, testing, reporting, and completion status.
 
-- Keep tool calls targeted and outputs compact. For known Jira keys, request only
-  `key,summary,status,updated,issuetype,parent,subtasks`; fetch descriptions or
-  comments only when requirements, coverage, or evidence requires them.
-- Cache the cloud ID, issue-type metadata, persona mapping, transition IDs, and
-  unchanged requirements for this run. Do not repeat equivalent reads.
-- Batch independent reads. Use narrow file ranges and bounded searches.
-- Prefer concise command output (`git status --short`, `git diff --check`, filtered
-  Salesforce status). Save full deployment/test JSON to ignored artifacts and report
-  only status, IDs, counts, and failure excerpts.
-- Do not print full ADF, full Jira objects, full org listings, or generated reports.
-  Read only the concise report summary and required `jira-comments.json` entries.
-- Maintain a compact handoff containing the story key, org, branch/commit,
-  deployment ID, test-case keys/results, and next action.
+This prompt provides the story-specific execution checklist:
 
-## 1. Requirements and security
+## 1. Requirements and test coverage
 
-- Read the exact story using Atlassian MCP; search only when no key is supplied.
-  Use direct issue/page reads for known keys or IDs. Start with needed fields and
-  subtask keys/summaries, then expand only for requirements, comments, or evidence
-  that are actually needed. Extract components, API names/types/properties,
-  acceptance criteria (ACs), personas, access, layouts, and testing requirements.
-- Never invent requirements. If new fields lack explicit permissions or layout
-  placement, comment with missing requirements and stop before edits/subtask
-  creation. Resolve other material ambiguities before dependent work.
-- For security/personas, find the approved Confluence page "Salesforce Persona
-  Permission Set Mapping" once per run, then reuse that exact page while it remains
-  current. Resolve persona -> label -> Permission Set API name. Stop for
-  missing/ambiguous mappings; never guess or auto-create Permission Sets.
+- Read and confirm the exact Jira story and acceptance criteria.
+- Assign stable acceptance-criterion IDs when they are missing.
+- Build one coverage matrix: `AC -> TC ID -> Jira subtask key`.
+- Cover every acceptance criterion and relevant positive, negative, boundary,
+  regression, and persona allow/deny behavior.
+- Reuse equivalent existing test-case subtasks. Before creating anything,
+  show missing cases and request approval as required by the agent workflow.
+- Use the real Jira keys returned by Jira; never invent subtask keys.
 
-## 2. Test-case subtasks
+## 2. Implementation
 
-- Assign stable AC IDs if absent. Cover every AC and relevant positive, negative,
-  boundary, regression, and persona allow/deny cases. Combine checks into the
-  fewest independently executable subtasks when they share setup, method, persona,
-  and evidence.
-- Discover project subtask types and required fields. Use its test-case subtask
-  type or standard subtask; never assume a test plugin. Create one subtask per
-  independently executable case under `<KEY>` before implementation.
-  If creation is blocked, report the reason and stop.
-- Reuse matching TC IDs/equivalent cases; avoid duplicates. Preserve history,
-  update changed requirements, and explain superseded cases.
-- Each subtask: `TC-ID: behavior | AC IDs | preconditions/org/persona/Permission Set |
-data/setup | numbered steps + expected results | method/test/command | cleanup |
-initial result: Not Run`.
-- Keep one coverage matrix: `AC -> TC ID -> subtask key`; no uncovered ACs.
-  Show a brief implementation/testing plan.
+- Implement only the requested Salesforce changes and necessary tests.
+- Preserve unrelated metadata and existing Permission Set entries.
+- Before destructive changes, complete the repository-wide dependency scan
+  required by the agent workflow and record its result in the review.
+- Stop and report any unresolved dependency or material ambiguity instead of
+  guessing.
 
-## 3. Implement
+## 3. Review and publish
 
-- Inspect relevant metadata/conventions. Run `npm run story:start -- <KEY>`;
-  reuse a verified matching branch if present.
-- Modify only story metadata under `force-app/main/default` and necessary tests.
-  Reuse existing components and preserve unrelated work.
-- Before removing, renaming, or deleting any Salesforce metadata, identify the
-  exact Metadata API name and run a repository-wide dependency scan. Check
-  validation rules, formulas, flows, layouts, permissions, reports/list views,
-  Apex classes/tests, LWC JavaScript/HTML, Aura components/controllers, and
-  configuration files for references. Use semantic symbol usages where
-  available and targeted `rg` searches for the API name and field label.
-  Record each reference and its required update in the implementation plan.
-  If any dependency would require changing an existing component, test, rule,
-  flow, layout, permission, or other out-of-scope metadata, stop implementation
-  before editing that dependency, add a Jira comment listing the dependency and
-  requested change, and obtain explicit confirmation before proceeding.
-  Do not delete the metadata until every in-scope reference is updated or
-  confirmed intentionally unaffected; if a reference cannot be resolved, stop
-  and report it rather than guessing.
-- Use `permissionsets/<API>.permissionset-meta.xml`. If missing locally, retrieve
-  `PermissionSet:<API>` from the development org; stop if absent there too.
-  Merge required permissions, preserving unrelated entries. Do not substitute
-  Profiles or create replacement Permission Sets.
-- Field permissions: Read/Edit = readable/editable true; Read Only = readable
-  true/editable false; No Access = no grant. Resolve conflicting existing grants;
-  never exceed requested access.
-- Apex: follow architecture/error patterns, bulkify, avoid SOQL/DML in loops and
-  hard-coded IDs, enforce required CRUD/FLS/sharing, and add meaningful tests.
+- Review the scoped files, Salesforce components, acceptance-criteria coverage,
+  security matrix, test plan, and dependency-scan results.
+- Run applicable local checks and fix failures before requesting deployment.
+- Obtain the required approval before deployment, commit, or push.
+- Use `npm run story:publish -- <KEY>` for normal reviewed publishing. The
+  script deploys Salesforce metadata, then stages, commits, and pushes the
+  changed Salesforce files. It does not replace acceptance-test execution.
+- For reviewed destructive changes, use the manifest/destructive-deployment
+  procedure defined by the agent; do not pass deleted files to the normal
+  source deployment path.
 
-## 4. Review and publish
+## 4. Execute and report tests
 
-- Check `git status`, scoped diff, `git diff --check`, changed XML, and applicable
-  local tests. Fix failures before publishing.
-- Present files/components, AC coverage, test links/results, and security matrix:
-  `persona | Permission Set | field | read | edit`. Jira, Confluence, and metadata
-  must agree; stop deployment on mismatch.
-- Default completion behavior: after a reviewed deployment succeeds and the
-  required tests pass, the implementation should automatically commit the reviewed
-  changes and advance the relevant Jira issues to `Done` without waiting for a
-  separate manual commit or status-change step.
-- Obtain approval for reviewed deployment/commit/push unless already explicitly
-  authorized for this scope. Verify the intended development org and file scope.
-- Run `npm run story:publish -- <KEY>`; it deploys, commits, and pushes together.
-  Do not repeat these manually. Capture `STORY_RESULT`; publishing is not proof
-  that acceptance tests passed.
-- For reviewed destructive changes, never pass deleted files to `--source-dir`.
-  Prepare `manifest/package.xml` for surviving components and
-  `manifest/destructiveChangesPost.xml` for deletions. Run:
-  `npm run deploy -- -TargetOrg <development-org> -DestructiveChanges manifest\destructiveChangesPost.xml`.
-  Use exact Metadata API names, including layout `%28`/`%29` encoding.
-  This only deploys: verify success before authorized commit/push; do not then
-  use a publish path that cannot handle deletions.
-- For every destructive change, include the completed dependency-scan result in
-  the review: searched API names, reference categories checked, references
-  changed, and references confirmed absent or unaffected. The scan is a
-  deployment gate; do not publish destructive metadata with an incomplete scan.
-- On publish failure, stop downstream publishing; do not bypass or manually
-  commit/push. Report the actual failed stage, reason, components/Permission Sets,
-  org, and any completed deployment/commit. Mark prevented cases Blocked in
-  subtask comments and proceed to the parent report with available results.
+- After a successful deployment, reconcile the Jira test-case subtasks again.
+- Do not create missing subtasks or execute their tests until the required
+  approval is received.
+- Execute every required case against the deployed version and record actual
+  evidence. Use exactly: `Passed`, `Failed`, `Blocked`, or `Not Run`.
+- Copy `scripts/test-results.example.json` to a unique ignored artifact input,
+  replace every example value with the real story, deployment, case, result,
+  and evidence data, then run:
 
-## 5. Execute and record tests
+  `npm run story:report -- artifacts/jira/<KEY>/<RUN>-input.json artifacts/jira/<KEY>/<RUN>`
 
-- After deployment succeeds, refresh the parent story and subtasks with minimal
-  fields first: key, summary, status, updated, issue type, and parent. Fetch full
-  descriptions/comments only when timestamps changed, coverage is unclear, or
-  evidence is needed. Reconcile the coverage matrix against Jira. If any required
-  test-case subtask is missing, stop and ask for approval to create the missing
-  subtask(s) and run their tests. Do not create subtasks or execute their tests
-  until approval is received. After approval, create them under `<KEY>`, use the
-  standard Subtask type when no test-specific type exists, and verify each
-  returned parent relationship. Never invent a Jira key: use the key returned by
-  Jira.
-  Do not generate or post the report until every AC has a Jira test-case subtask.
-- Execute every current case against the published version using specified Apex
-  tests, relevant LWC tests, and development-org API/UI checks as appropriate.
-  Local tests do not replace required deployed checks. Await asynchronous results.
-- Verify effective persona access: XML inspection or `System.runAs` alone does
-  not prove CRUD/FLS. Missing users/tools/manual execution means Blocked.
-- Continue independent cases after failures. Passed = expected behavior observed;
-  Failed = mismatch; Blocked = missing prerequisite; Not Run = unattempted with
-  explanation. Never fabricate results/evidence.
-- Read [test-report-guide.md](test-report-guide.md). Record observed results once
-  in its input JSON, run the report helper, then post the generated parent and
-  subtask comments. Do not manually redraft reports or read every generated format
-  when `jira-comments.json` is sufficient.
-- After a successful deployment and a `Passed` testing result, the default path is
-  to commit the reviewed code changes, then transition every passed test-case
-  subtask to `Done`, followed by the parent story to `Done`. Resolve the
-  available transition by name for each issue, apply it, and refresh each issue
-  to verify the returned status. Do not mark failed, blocked, or not-run cases
-  done, and do not mark the parent done unless all required cases passed and
-  their reports were posted.
-- Fix in-scope failures; repeat review/publish with applicable authorization.
-  Rerun affected cases and relevant regression tests. Preserve execution history
-  and tested versions; do not reuse stale results for changed behavior.
+- Read the concise report output and the needed `jira-comments.json` entries.
+- Post generated parent and subtask comments through Atlassian MCP, using
+  markers to avoid duplicate comments.
+- Verify posted comment IDs and issue statuses before claiming completion.
+- Follow the agent's completion rules for transitioning passed subtasks and
+  the parent story; leave failed, blocked, and not-run work incomplete.
 
-## 6. Parent report and completion
+## Completion handoff
 
-Use the same helper on successful, failed, or incomplete runs, including publish
-failures. Exit code 2 means reports were generated with failures/incomplete work;
-still post them. Exit code 1 means a generation error to fix. Use comment markers
-to avoid duplicates.
-
-Counts must reconcile. Testing passes only when all required cases pass for the
-final version; any failure means Failed, otherwise Blocked/Not Run means Incomplete.
-Deployment success or coverage alone is insufficient. Claim completion only after
-successful publishing, required testing, and confirmed Jira reports.
-
-If a Jira write fails, retain its pending payload locally, report the error, and
-check whether it succeeded before retrying. Never claim unconfirmed updates.
-Do not transition stories/subtasks before deployment and testing are complete.
-Successful runs transition passed test-case subtasks and the parent story to
-`Done`; failed or incomplete runs leave statuses unchanged and report the reason.
-Obtain approval before creating/merging a PR unless already authorized.
-Never expose secrets, deploy to Production, force push, or bypass deployment failures.
-
-## Token-efficient execution
-
-- Prefer direct Atlassian reads over semantic search when keys, IDs, CQL, or JQL are
-  known. Request only needed Jira fields when supported. Read subtask
-  IDs/summaries first, then necessary details. Start with relevant/latest
-  execution comments; expand history for requirements/evidence. Preserve
-  pagination needed for full coverage.
-- Reuse unchanged requirements, issue-type metadata, and Confluence mappings within
-  the run; refresh only when changed, stale, unclear, or resuming after
-  interruption.
-- Locate files with `rg`; read relevant sections/dependencies. Batch independent
-  reads; keep dependent writes sequential.
-- Prefer structured CLI output: status, counts, IDs, failure excerpts. Keep full
-  sanitized logs in artifacts. Jira evidence needs accessible links or sufficient
-  sanitized excerpts; local paths alone are not shared evidence.
-- Run relevant tests together and map results to cases, rather than repeating a
-  command per subtask. Rerun for changes, failures, or unresolved evidence; honor
-  required suites. Use tool wait guidance rather than rapid polling.
-- Reuse the coverage matrix in reports. Keep subtask evidence reproducible and
-  parent rows concise; link instead of repeating logs/steps.
-- For long runs, keep a compact checkpoint: key, requirement/mapping references,
-  branch/commit, files, TC keys/results, run IDs, approvals, next step. Verify
-  current state on resume. Never save tokens by omitting ACs, tests, gates, or evidence.
+Summarize the Jira key, development org, branch and commit, deployment status
+and ID, changed components, coverage matrix, test totals and evidence,
+generated artifacts, posted comments, and verified Jira statuses.
