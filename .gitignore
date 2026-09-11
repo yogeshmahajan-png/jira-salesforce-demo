@@ -31,6 +31,13 @@ node_modules/
 # Eslint cache
 .eslintcache
 
+# Delivery state
+.delivery/
+
+# VS Code extension build artifacts
+vscode-salesforce-jira-delivery/dist/
+vscode-salesforce-jira-delivery/*.vsix
+
 # MacOS system files
 .DS_Store
 

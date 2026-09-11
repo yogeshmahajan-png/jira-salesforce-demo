@@ -380,21 +380,34 @@ function writeDeploymentManifest(files, jiraKey) {
   const membersByType = new Map();
 
   for (const file of files) {
+    const normalizedFile = file.replaceAll("\\", "/");
     let type;
     let member;
-    let match = file.match(
+    const fieldMatch = normalizedFile.match(
       /\/objects\/([^/]+)\/fields\/([^/]+)\.field-meta\.xml$/
     );
+    const vrMatch = normalizedFile.match(
+      /\/objects\/([^/]+)\/validationRules\/([^/]+)\.validationRule-meta\.xml$/
+    );
+    const classMatch = normalizedFile.match(
+      /\/classes\/([^/]+)\.cls(?:-meta\.xml)?$/
+    );
 
-    if (match) {
+    if (fieldMatch) {
       type = "CustomField";
-      member = `${match[1]}.${match[2]}`;
-    } else if (file.includes("/permissionsets/")) {
+      member = `${fieldMatch[1]}.${fieldMatch[2]}`;
+    } else if (vrMatch) {
+      type = "ValidationRule";
+      member = `${vrMatch[1]}.${vrMatch[2]}`;
+    } else if (classMatch) {
+      type = "ApexClass";
+      member = classMatch[1];
+    } else if (normalizedFile.includes("/permissionsets/")) {
       type = "PermissionSet";
-      member = path.basename(file, ".permissionset-meta.xml");
-    } else if (file.includes("/layouts/")) {
+      member = path.basename(normalizedFile, ".permissionset-meta.xml");
+    } else if (normalizedFile.includes("/layouts/")) {
       type = "Layout";
-      member = path.basename(file, ".layout-meta.xml");
+      member = path.basename(normalizedFile, ".layout-meta.xml");
     } else {
       throw new Error(
         `Cannot map Salesforce file to deployment metadata: ${file}`
@@ -404,7 +417,10 @@ function writeDeploymentManifest(files, jiraKey) {
     if (!membersByType.has(type)) {
       membersByType.set(type, []);
     }
-    membersByType.get(type).push(member);
+    const currentMembers = membersByType.get(type);
+    if (!currentMembers.includes(member)) {
+      currentMembers.push(member);
+    }
   }
 
   const types = [...membersByType.entries()]

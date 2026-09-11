@@ -32,24 +32,155 @@
     "redhat.vscode-xml"
   ],
   "activationEvents": [
-    "onCommand:salesforceJiraDelivery.install"
+    "onStartupFinished"
   ],
-  "main": "./src/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "salesforceJiraDelivery.install",
         "title": "Salesforce Jira Delivery: Install Agent in Workspace",
         "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.openSidebar",
+        "title": "Salesforce Jira Delivery: Open Sidebar",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.setStory",
+        "title": "Salesforce Jira Delivery: Select Jira Story",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.startStory",
+        "title": "Salesforce Jira Delivery: Start Story",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.analyzeStory",
+        "title": "Salesforce Jira Delivery: Analyze Story",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.generateTests",
+        "title": "Salesforce Jira Delivery: Generate Test Plan",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.deploy",
+        "title": "Salesforce Jira Delivery: Deploy to Development Org",
+        "category": "Salesforce Jira Delivery",
+        "enablement": "salesforceJiraDelivery.dryRun == false"
+      },
+      {
+        "command": "salesforceJiraDelivery.runTests",
+        "title": "Salesforce Jira Delivery: Run Tests",
+        "category": "Salesforce Jira Delivery",
+        "enablement": "salesforceJiraDelivery.dryRun == false"
+      },
+      {
+        "command": "salesforceJiraDelivery.publish",
+        "title": "Salesforce Jira Delivery: Publish Story",
+        "category": "Salesforce Jira Delivery",
+        "enablement": "salesforceJiraDelivery.dryRun == false"
+      },
+      {
+        "command": "salesforceJiraDelivery.openPersonaMapping",
+        "title": "Salesforce Jira Delivery: Open Persona Mapping",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.gitStatus",
+        "title": "Salesforce Jira Delivery: Show Git Status",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.toggleDryRun",
+        "title": "Salesforce Jira Delivery: Toggle Dry Run",
+        "category": "Salesforce Jira Delivery"
+      },
+      {
+        "command": "salesforceJiraDelivery.runDryRun",
+        "title": "Salesforce Jira Delivery: Run Dry Run",
+        "category": "Salesforce Jira Delivery",
+        "enablement": "salesforceJiraDelivery.dryRun"
+      },
+      {
+        "command": "salesforceJiraDelivery.showDryRunResult",
+        "title": "Salesforce Jira Delivery: Show Dry Run Result",
+        "category": "Salesforce Jira Delivery",
+        "enablement": "salesforceJiraDelivery.hasDryRunResult"
+      },
+      {
+        "command": "salesforceJiraDelivery.approveAndExecute",
+        "title": "Salesforce Jira Delivery: Approve & Execute",
+        "category": "Salesforce Jira Delivery",
+        "enablement": "salesforceJiraDelivery.isAwaitingApproval"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "salesforceJiraDelivery",
+          "title": "Salesforce Jira Delivery",
+          "icon": "$(cloud-upload)"
+        }
+      ]
+    },
+    "views": {
+      "salesforceJiraDelivery": [
+        {
+          "id": "salesforceJiraDelivery.sidebar",
+          "name": "Delivery",
+          "contextualTitle": "Salesforce Jira Delivery"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "salesforceJiraDelivery.setStory",
+          "when": "view == salesforceJiraDelivery.sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "salesforceJiraDelivery.startStory",
+          "when": "view == salesforceJiraDelivery.sidebar",
+          "group": "navigation@2"
+        },
+        {
+          "command": "salesforceJiraDelivery.approveAndExecute",
+          "when": "view == salesforceJiraDelivery.sidebar && salesforceJiraDelivery.isAwaitingApproval",
+          "group": "navigation@3"
+        },
+        {
+          "command": "salesforceJiraDelivery.deploy",
+          "when": "view == salesforceJiraDelivery.sidebar && salesforceJiraDelivery.dryRun == false && !salesforceJiraDelivery.isAwaitingApproval",
+          "group": "navigation@3"
+        },
+        {
+          "command": "salesforceJiraDelivery.runDryRun",
+          "when": "view == salesforceJiraDelivery.sidebar && salesforceJiraDelivery.dryRun",
+          "group": "navigation@3"
+        },
+        {
+          "command": "salesforceJiraDelivery.showDryRunResult",
+          "when": "view == salesforceJiraDelivery.sidebar && salesforceJiraDelivery.hasDryRunResult",
+          "group": "navigation@4"
+        }
+      ]
+    }
   },
   "scripts": {
-    "test": "node --test test/*.test.js",
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.js",
     "package": "vsce package --no-dependencies",
     "vscode:prepublish": "npm test"
   },
   "devDependencies": {
-    "@vscode/vsce": "^3.6.0"
+    "@types/node": "^24.3.1",
+    "@vscode/vsce": "^3.6.0",
+    "typescript": "^5.9.2"
   }
 }

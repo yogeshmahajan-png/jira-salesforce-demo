@@ -2,7 +2,7 @@
 name: test-jira
 description: Create or reconcile Jira test-case subtasks, run tests, and post reports for a completed Salesforce Jira story
 argument-hint: "Jira key, for example SF-125"
-agent: agent
+agent: Salesforce Jira Delivery
 ---
 
 Test ${input:jiraKey:Enter Jira key, for example SF-125}.
