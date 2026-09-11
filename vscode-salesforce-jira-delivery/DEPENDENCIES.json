@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "packageVersion": "1.0.0",
+  "vscode": {
+    "minimumVersion": "1.103.0",
+    "requiredExtensions": [
+      {
+        "id": "GitHub.copilot-chat",
+        "reason": "Discovers and runs workspace custom agents and prompt files."
+      }
+    ],
+    "recommendedExtensions": [
+      {
+        "id": "salesforce.salesforcedx-vscode",
+        "reason": "Provides Salesforce DX project tooling."
+      },
+      {
+        "id": "redhat.vscode-xml",
+        "reason": "Validates and edits Salesforce metadata XML."
+      }
+    ]
+  },
+  "commandLine": [
+    {
+      "name": "Node.js",
+      "minimumVersion": "18.0.0",
+      "required": true,
+      "reason": "Runs the dependency-free story and test-report helpers."
+    },
+    {
+      "name": "Git",
+      "required": true,
+      "reason": "Creates story branches and publishes reviewed changes."
+    },
+    {
+      "name": "Salesforce CLI",
+      "command": "sf",
+      "required": true,
+      "reason": "Retrieves, validates, deploys, and tests Salesforce metadata."
+    },
+    {
+      "name": "npm",
+      "required": true,
+      "reason": "Exposes the installed workflow commands."
+    }
+  ],
+  "services": [
+    {
+      "name": "Atlassian MCP",
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2",
+      "required": true,
+      "reason": "Reads Jira and Confluence and posts delivery reports."
+    },
+    {
+      "name": "Salesforce development org",
+      "defaultAlias": "CopilotJiraOrg",
+      "required": true,
+      "reason": "Target for retrieval, deployment, and acceptance testing. Production is prohibited."
+    }
+  ],
+  "workspaceFiles": [
+    ".github/agents/salesforce-jira-delivery.agent.md",
+    ".github/prompts/implement-jira.prompt.md",
+    ".github/prompts/test-jira.prompt.md",
+    ".github/prompts/test-report-guide.md",
+    "scripts/story.js",
+    "scripts/test-report.js",
+    "scripts/test-report.test.js",
+    "scripts/test-results.example.json"
+  ]
+}

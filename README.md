@@ -11,7 +11,7 @@ Before you start, make sure you have:
 - **Salesforce CLI** - Download from [developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli). See [Install Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) for details.
 - **VS Code with Salesforce Extension Pack** - See [Installation Instructions](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide/install.html) for details. Includes the Agentforce Vibes extension.
 - **A development org** - Sign up for a free Developer Edition org [here](https://developer.salesforce.com/signup).
-- **Dev Hub enabled** (optional, required to create scratch orgs) - You can enable Dev Hub in your development org under Setup > Dev Hub.  See [Provide Developers Access to Salesforce DX Tools](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_setup_dx_tools.htm).
+- **Dev Hub enabled** (optional, required to create scratch orgs) - You can enable Dev Hub in your development org under Setup > Dev Hub. See [Provide Developers Access to Salesforce DX Tools](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_setup_dx_tools.htm).
 
 ## Project Structure
 
@@ -56,3 +56,23 @@ Transform your ideas into custom Lightning apps that extend CRM workflows direct
 - [Salesforce CLI Plugin Development Guide](https://developer.salesforce.com/docs/platform/salesforce-cli-plugin/guide/conceptual-overview.html)
 - [Salesforce VS Code Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
 
+## Reusable Salesforce Jira Delivery Agent
+
+The `vscode-salesforce-jira-delivery/` package contains a reusable VS Code
+extension for installing this repository's Salesforce Jira Delivery Copilot
+agent and all required workflow files into another Salesforce project.
+
+Install the generated package:
+
+```text
+code --install-extension vscode-salesforce-jira-delivery/salesforce-jira-delivery-1.0.0.vsix
+```
+
+Then open the destination project and run **Salesforce Jira Delivery: Install
+Agent in Workspace** from the VS Code Command Palette. The installer preserves
+unrelated project settings and asks before replacing conflicting managed files
+or settings.
+
+See `vscode-salesforce-jira-delivery/README.md` for build and usage instructions
+and `vscode-salesforce-jira-delivery/DEPENDENCIES.json` for the versioned
+machine, extension, service, and workspace prerequisites.
