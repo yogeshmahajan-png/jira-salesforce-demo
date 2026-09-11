@@ -1,0 +1,55 @@
+{
+  "name": "salesforce-jira-delivery",
+  "displayName": "Salesforce Jira Delivery",
+  "description": "Installs the Salesforce Jira Delivery Copilot agent and its portable workflow dependencies into any workspace.",
+  "version": "1.0.0",
+  "publisher": "yogeshmahajan-png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yogeshmahajan-png/jira-salesforce-demo.git",
+    "directory": "vscode-salesforce-jira-delivery"
+  },
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "categories": [
+    "Other",
+    "Extension Packs"
+  ],
+  "keywords": [
+    "salesforce",
+    "jira",
+    "copilot",
+    "agent",
+    "delivery"
+  ],
+  "extensionDependencies": [
+    "GitHub.copilot-chat"
+  ],
+  "extensionPack": [
+    "salesforce.salesforcedx-vscode",
+    "redhat.vscode-xml"
+  ],
+  "activationEvents": [
+    "onCommand:salesforceJiraDelivery.install"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "salesforceJiraDelivery.install",
+        "title": "Salesforce Jira Delivery: Install Agent in Workspace",
+        "category": "Salesforce Jira Delivery"
+      }
+    ]
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "package": "vsce package --no-dependencies",
+    "vscode:prepublish": "npm test"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.6.0"
+  }
+}
