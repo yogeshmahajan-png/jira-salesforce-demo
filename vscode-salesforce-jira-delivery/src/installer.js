@@ -83,6 +83,16 @@ function findConflicts(workspace, resources) {
     conflicts.push(".vscode/mcp.json#servers.atlassian");
   }
 
+  const agentHostMcpFile = path.join(workspace, ".mcp.json");
+  const agentHostMcp = readJson(agentHostMcpFile, {});
+  if (
+    agentHostMcp.servers?.atlassian &&
+    JSON.stringify(agentHostMcp.servers.atlassian) !==
+      JSON.stringify(ATLASSIAN_SERVER)
+  ) {
+    conflicts.push(".mcp.json#servers.atlassian");
+  }
+
   return conflicts;
 }
 
@@ -133,7 +143,11 @@ function mergePackageJson(workspace, overwrite) {
 }
 
 function mergeMcpJson(workspace, overwrite) {
-  const file = path.join(workspace, ".vscode", "mcp.json");
+  mergeMcpFile(path.join(workspace, ".vscode", "mcp.json"), overwrite);
+  mergeMcpFile(path.join(workspace, ".mcp.json"), overwrite);
+}
+
+function mergeMcpFile(file, overwrite) {
   const mcp = readJson(file, {});
   mcp.servers ||= {};
   mcp.inputs ||= [];

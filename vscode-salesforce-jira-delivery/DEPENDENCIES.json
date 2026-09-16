@@ -63,6 +63,8 @@
     ".github/prompts/implement-jira.prompt.md",
     ".github/prompts/test-jira.prompt.md",
     ".github/prompts/test-report-guide.md",
+    ".mcp.json",
+    ".vscode/mcp.json",
     "scripts/story.js",
     "scripts/test-report.js",
     "scripts/test-report.test.js",
