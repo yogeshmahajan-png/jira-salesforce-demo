@@ -410,6 +410,9 @@ function writeDeploymentManifest(files, jiraKey) {
       member = file.endsWith(".cls")
         ? path.basename(file, ".cls")
         : path.basename(file, ".cls-meta.xml");
+    } else if (file.includes("/flows/")) {
+      type = "Flow";
+      member = path.basename(file, ".flow-meta.xml");
     } else {
       throw new Error(
         `Cannot map Salesforce file to deployment metadata: ${file}`
