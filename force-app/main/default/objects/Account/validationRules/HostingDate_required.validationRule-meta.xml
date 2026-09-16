@@ -3,8 +3,8 @@
     <fullName>HostingDate_required</fullName>
     <active>true</active>
     <errorConditionFormula
-  >ISPICKVAL(Hosting_Country__c, &quot;USA&quot;) &amp;&amp; ISBLANK(Hosting_Date__c)</errorConditionFormula>
+  >(ISPICKVAL(Hosting_Country__c, &quot;USA&quot;) || ISPICKVAL(Hosting_Country__c, &quot;UK&quot;)) &amp;&amp; ISBLANK(Hosting_Date__c)</errorConditionFormula>
     <errorDisplayField>Hosting_Date__c</errorDisplayField>
     <errorMessage
-  >Hosting Date is required when Hosting Country is USA.</errorMessage>
+  >Hosting Date is required when Hosting Country is USA or UK.</errorMessage>
 </ValidationRule>

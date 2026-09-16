@@ -3,7 +3,7 @@
     <fullName>Hosting_Country__c</fullName>
     <label>Hosting Country</label>
     <required>false</required>
-    <trackHistory>false</trackHistory>
+    <trackFeedHistory>false</trackFeedHistory>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
