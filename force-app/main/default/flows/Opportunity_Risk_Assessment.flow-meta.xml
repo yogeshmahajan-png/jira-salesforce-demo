@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>64.0</apiVersion>
+    <description
+  >Evaluates Opportunity stage aging and closing-soon risk before save.</description>
+    <formulas>
+        <name>StageChanged</name>
+        <dataType>Boolean</dataType>
+        <expression
+    >OR(ISNEW(), TEXT($Record.StageName) &lt;&gt; TEXT($Record__Prior.StageName), ISBLANK($Record.Stage_Entered_Date__c))</expression>
+        <scale>0</scale>
+    </formulas>
+    <formulas>
+        <name>EffectiveStageEnteredDate</name>
+        <dataType>Date</dataType>
+        <expression
+    >IF({!StageChanged}, $Flow.CurrentDate, $Record.Stage_Entered_Date__c)</expression>
+        <scale>0</scale>
+    </formulas>
+    <formulas>
+        <name>StageAging</name>
+        <dataType>Boolean</dataType>
+        <expression
+    >AND(NOT(ISBLANK({!EffectiveStageEnteredDate})), {!EffectiveStageEnteredDate} &lt; ($Flow.CurrentDate - 30))</expression>
+        <scale>0</scale>
+    </formulas>
+    <formulas>
+        <name>ClosingSoon</name>
+        <dataType>Boolean</dataType>
+        <expression
+    >AND(NOT($Record.IsClosed), NOT(ISBLANK($Record.CloseDate)), $Record.CloseDate &gt;= $Flow.CurrentDate, $Record.CloseDate &lt;= ($Flow.CurrentDate + 14))</expression>
+        <scale>0</scale>
+    </formulas>
+    <formulas>
+        <name>RiskReason</name>
+        <dataType>String</dataType>
+        <expression
+    >IF(AND({!StageAging}, {!ClosingSoon}), &quot;Stage Aging and Closing Soon&quot;, IF({!StageAging}, &quot;Stage Aging&quot;, IF({!ClosingSoon}, &quot;Closing Soon&quot;, &quot;None&quot;)))</expression>
+        <scale>0</scale>
+    </formulas>
+    <formulas>
+        <name>AtRisk</name>
+        <dataType>Boolean</dataType>
+        <expression>OR({!StageAging}, {!ClosingSoon})</expression>
+        <scale>0</scale>
+    </formulas>
+    <interviewLabel
+  >Opportunity Risk Assessment {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Opportunity Risk Assessment</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>50</locationY>
+        <connector>
+            <targetReference>Set_Risk_Fields</targetReference>
+        </connector>
+        <object>Opportunity</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+    <assignments>
+        <name>Set_Risk_Fields</name>
+        <label>Set Risk Fields</label>
+        <locationX>176</locationX>
+        <locationY>158</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Stage_Entered_Date__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>EffectiveStageEnteredDate</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.At_Risk__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>AtRisk</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.Risk_Reason__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>RiskReason</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference
+      >$Record.Last_Risk_Review_Date__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+</Flow>

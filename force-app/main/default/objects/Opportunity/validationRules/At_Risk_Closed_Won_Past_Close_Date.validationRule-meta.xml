@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>At_Risk_Closed_Won_Past_Close_Date</fullName>
+    <active>true</active>
+    <errorConditionFormula
+  >AND(OR(At_Risk__c, PRIORVALUE(At_Risk__c)), ISPICKVAL(StageName, &quot;Closed Won&quot;), CloseDate &lt; TODAY())</errorConditionFormula>
+    <errorDisplayField>CloseDate</errorDisplayField>
+    <errorMessage
+  >Update the Close Date before closing this At Risk Opportunity.</errorMessage>
+</ValidationRule>

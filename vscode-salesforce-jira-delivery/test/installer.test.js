@@ -56,6 +56,10 @@ test("installs all resources and creates portable workspace configuration", () =
     fs.readFileSync(path.join(workspace, ".vscode", "mcp.json"))
   );
   assert.deepEqual(mcp.servers.atlassian, ATLASSIAN_SERVER);
+  const agentHostMcp = JSON.parse(
+    fs.readFileSync(path.join(workspace, ".mcp.json"))
+  );
+  assert.deepEqual(agentHostMcp.servers.atlassian, ATLASSIAN_SERVER);
   assert.match(
     fs.readFileSync(path.join(workspace, ".gitignore"), "utf8"),
     /^artifacts\/jira\/$/m
@@ -74,6 +78,10 @@ test("preserves unrelated package, MCP, and gitignore settings", () => {
     path.join(workspace, ".vscode", "mcp.json"),
     JSON.stringify({ servers: { internal: { command: "internal-mcp" } } })
   );
+  fs.writeFileSync(
+    path.join(workspace, ".mcp.json"),
+    JSON.stringify({ servers: { agentHost: { command: "agent-host-mcp" } } })
+  );
   fs.writeFileSync(path.join(workspace, ".gitignore"), "dist/\n");
 
   install(workspace, resources);
@@ -87,6 +95,13 @@ test("preserves unrelated package, MCP, and gitignore settings", () => {
     fs.readFileSync(path.join(workspace, ".vscode", "mcp.json"))
   );
   assert.deepEqual(mcp.servers.internal, { command: "internal-mcp" });
+  const agentHostMcp = JSON.parse(
+    fs.readFileSync(path.join(workspace, ".mcp.json"))
+  );
+  assert.deepEqual(agentHostMcp.servers.agentHost, {
+    command: "agent-host-mcp"
+  });
+  assert.deepEqual(agentHostMcp.servers.atlassian, ATLASSIAN_SERVER);
   assert.match(
     fs.readFileSync(path.join(workspace, ".gitignore"), "utf8"),
     /^dist\/$/m

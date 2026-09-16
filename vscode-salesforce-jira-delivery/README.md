@@ -41,7 +41,9 @@ The installer also:
 
 - adds `story:start`, `story:publish`, `story:report`, and `test:report` to
   `package.json`;
-- adds the official Atlassian MCP endpoint to `.vscode/mcp.json`; and
+- adds the official Atlassian MCP endpoint to both `.vscode/mcp.json` and the
+  workspace `.mcp.json` file so Local chat and Agent Host sessions can discover
+  Jira/Confluence tools; and
 - ignores generated `artifacts/jira/` report data.
 
 See `DEPENDENCIES.json` for machine-readable prerequisites and the exact
