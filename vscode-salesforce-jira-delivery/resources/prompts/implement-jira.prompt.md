@@ -64,8 +64,12 @@ This prompt provides the story-specific execution checklist:
 - Post generated parent and subtask comments through Atlassian MCP, using
   markers to avoid duplicate comments.
 - Verify posted comment IDs and issue statuses before claiming completion.
-- Follow the agent's completion rules for transitioning passed subtasks and
-  the parent story; leave failed, blocked, and not-run work incomplete.
+- After deployment, all required tests, Jira reporting, and status verification
+  succeed, resolve the parent story's available transition by name and move it
+  to `Dev Completed`. Verify the returned status before claiming completion.
+- Transition passed test subtasks to `Done`; leave failed, blocked, and not-run
+  work incomplete. Never move the parent story to `Dev Completed` when any
+  required case is failed, blocked, or not run.
 
 ## Completion handoff
 

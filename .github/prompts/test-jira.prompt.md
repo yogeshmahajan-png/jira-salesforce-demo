@@ -51,15 +51,17 @@ and deployment/publish step is already complete.
    to its Jira issue through Atlassian MCP, using markers to avoid duplicates.
 10. After the report is generated and posted, the default completion path is to
     commit any reviewed follow-up changes and then transition each test-case
-    subtask whose result is `Passed` to Jira status `Done`. When all required
-    cases are `Passed`, transition the parent story to `Done` as well. Resolve
-    the available transition by name for each issue, verify the returned status,
-    and do not transition `Failed`, `Blocked`, or `Not Run` cases to `Done`. If
-    a transition fails, surface the failure in the summary and do not claim that
-    issue is complete.
+    subtask whose result is `Passed` to Jira status `Done`. When deployment,
+    reporting, and every required case are successful, resolve the parent
+    story's available transition by name and move it to `Dev Completed`. Verify
+    the returned status for every transition. Do not move the parent story to
+    `Dev Completed` when any required case is `Failed`, `Blocked`, or `Not Run`.
+    If a transition fails, surface the failure in the summary and do not claim
+    that issue is complete.
 11. Summarize deployment status, test totals, failed/blocked cases, report
     artifacts, posted Jira comments, and verified subtask statuses.
 
 Follow [test-report-guide.md](test-report-guide.md) for report input rules and
-posting behavior. The passed-subtask and all-passed parent transition rules above
-are part of the workflow; leave incomplete work in its current status.
+posting behavior. The passed-subtask and successful-parent-to-`Dev Completed`
+transition rules above are part of the workflow; leave incomplete work in its
+current status.
