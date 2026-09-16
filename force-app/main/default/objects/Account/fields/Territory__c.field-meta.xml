@@ -3,7 +3,7 @@
     <fullName>Territory__c</fullName>
     <label>Territory</label>
     <required>false</required>
-    <trackHistory>false</trackHistory>
+    <trackFeedHistory>false</trackFeedHistory>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>

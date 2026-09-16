@@ -3,6 +3,6 @@
     <fullName>Hosting_Date__c</fullName>
     <label>Hosting Date</label>
     <required>false</required>
-    <trackHistory>false</trackHistory>
+    <trackFeedHistory>false</trackFeedHistory>
     <type>Date</type>
 </CustomField>

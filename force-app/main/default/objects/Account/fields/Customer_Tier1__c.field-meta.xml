@@ -3,7 +3,7 @@
     <fullName>Customer_Tier1__c</fullName>
     <label>Customer Tier1</label>
     <required>false</required>
-    <trackHistory>false</trackHistory>
+    <trackFeedHistory>false</trackFeedHistory>
     <type>Picklist</type>
     <valueSet>
         <restricted>true</restricted>
@@ -18,6 +18,12 @@
                 <fullName>Bronze</fullName>
                 <default>false</default>
                 <label>Bronze</label>
+            </value>
+            <value>
+                <fullName>Gold</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Gold</label>
             </value>
         </valueSetDefinition>
     </valueSet>
