@@ -4,6 +4,7 @@
     <description
   >Internal date used to calculate how long the Opportunity has been in its current stage.</description>
     <label>Stage Entered Date</label>
+    <required>false</required>
     <trackFeedHistory>false</trackFeedHistory>
     <trackTrending>false</trackTrending>
     <type>Date</type>
