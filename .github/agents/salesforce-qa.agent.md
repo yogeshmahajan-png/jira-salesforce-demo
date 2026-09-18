@@ -61,6 +61,24 @@ acceptable when it has required project permissions.
 
 ---
 
+# CREDIT OPTIMIZATION RULES (REQUIRED)
+
+Minimize token/credit usage on every run:
+
+1. Retrieve minimal Jira fields first (`key,summary,status,updated,issuetype,parent,subtasks`).
+2. Fetch descriptions/comments/attachments only when needed for AC clarity or evidence.
+3. Resolve direct Jira keys with direct reads; avoid broad searches when key is known.
+4. Batch independent Jira reads and Salesforce checks.
+5. Cache and reuse within the run:
+   - Jira cloud/project identifiers
+   - Issue type IDs (Test, Test Execution)
+   - Transition IDs
+   - Unchanged story metadata and prior verification artifacts
+6. Keep command output concise; store verbose JSON/logs in local artifacts and report only IDs, counts, statuses, and failure excerpts.
+7. Do not repeat equivalent API reads unless status or timestamps changed.
+
+---
+
 # PRIMARY WORKFLOW
 
 Execute the following workflow:
@@ -456,7 +474,31 @@ Never mark a test PASS without execution evidence.
 
 ---
 
-# STEP 13 — QA REPORT
+# STEP 12A - UPDATE EACH TEST ISSUE (REQUIRED)
+
+After execution, post a result comment on each Xray Test issue.
+
+Each per-test comment must include:
+
+- Run identifier/timestamp
+- Test key and temporary test ID
+- Result (PASS/FAIL/BLOCKED/NOT EXECUTED)
+- Expected Result
+- Actual Result
+- Evidence
+- Failure reason and error details (for FAIL/BLOCKED)
+
+Then transition each Test issue by result:
+
+- PASS -> Done (required when Done transition is available)
+- FAIL -> keep open (or move to project fail path if defined)
+- BLOCKED/NOT EXECUTED -> do not move to Done
+
+If a Test issue transition is unavailable, report the exact issue key and missing transition.
+
+---
+
+# STEP 13 - QA REPORT
 
 Create:
 
@@ -530,9 +572,22 @@ The comment must include:
 - Risk
 - Recommendation
 
+Also add or update a concise summary comment on the Test Execution issue with:
+
+- Execution key
+- Result totals
+- Per-test result list
+- Evidence references
+- Any unavailable Xray/Jira operation
+
 ---
 
 # STEP 15 — JIRA STATUS
+
+Before transitioning the parent story, verify per-test issue updates were completed:
+
+- Every executed PASS test has a result comment and is transitioned to Done (when transition exists).
+- FAIL/BLOCKED/NOT EXECUTED tests include explicit evidence and remain non-Done.
 
 If:
 
@@ -567,6 +622,8 @@ Do not automatically transition.
 Report:
 
 QA INCOMPLETE
+
+If any required per-test comment/transition step above was not completed, report QA INCOMPLETE and do not transition the parent story.
 
 ---
 
