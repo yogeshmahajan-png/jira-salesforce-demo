@@ -1,0 +1,18 @@
+{
+  "jiraKey": "KAN-37",
+  "startedAt": "2026-09-18T07:47:32.308Z",
+  "projectRoot": "D:\\Projects\\jira-salesforce-demo\\jira-salesforce-demo",
+  "promptFile": "D:\\Projects\\jira-salesforce-demo\\jira-salesforce-demo\\.github\\prompts\\test-jira.prompt.md",
+  "agentFile": "D:\\Projects\\jira-salesforce-demo\\jira-salesforce-demo\\.github\\agents\\salesforce-qa.agent.md",
+  "jiraAuth": {
+    "mode": "token",
+    "baseUrlConfigured": true,
+    "emailConfigured": true,
+    "apiTokenConfigured": true,
+    "sourceKeys": {
+      "baseUrl": "QA_JIRA_BASE_URL",
+      "email": "QA_JIRA_EMAIL",
+      "apiToken": "QA_JIRA_API_TOKEN"
+    }
+  }
+}

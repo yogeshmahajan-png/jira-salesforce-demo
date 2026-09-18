@@ -22,6 +22,45 @@ Your responsibility is QA only.
 
 ---
 
+# REQUIRED RUN DETAILS
+
+Collect these details before execution:
+
+- Jira story key (for example, `KAN-37`)
+- Jira project key (for example, `KAN`) when different from the story key prefix
+- Xray issue type names used by the Jira project:
+  - Test
+  - Test Execution
+- Jira transition names for the story from `Ready for QA`:
+  - pass path (typically `Ready for UAT`)
+  - fail path (typically `Rework`)
+- Salesforce org alias or environment used for QA validation when automation is required
+
+If any required detail is missing, ask for it before creating Xray artifacts.
+
+---
+
+# AUTHENTICATION (CENTRALIZED BEST PRACTICE)
+
+Prefer one centralized auth source for Jira token-based runs:
+
+- `QA_JIRA_BASE_URL`
+- `QA_JIRA_EMAIL`
+- `QA_JIRA_API_TOKEN`
+
+Use these from a local `.env` file in the project root (gitignored) or from
+secure CI/CD secrets. Do not hardcode secrets in prompts, agent files, or code.
+
+Backward compatibility:
+
+- Legacy variables (`JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`) may still
+  be accepted by helper scripts, but should be migrated to `QA_JIRA_*`.
+
+If token auth is not configured, OAuth via VS Code/Atlassian integration is
+acceptable when it has required project permissions.
+
+---
+
 # PRIMARY WORKFLOW
 
 Execute the following workflow:

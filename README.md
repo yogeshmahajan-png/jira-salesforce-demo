@@ -76,3 +76,21 @@ or settings.
 See `vscode-salesforce-jira-delivery/README.md` for build and usage instructions
 and `vscode-salesforce-jira-delivery/DEPENDENCIES.json` for the versioned
 machine, extension, service, and workspace prerequisites.
+
+## QA Agent Jira Authentication (Centralized)
+
+For QA agent token-based Jira/Xray operations, use centralized environment
+variables:
+
+- `QA_JIRA_BASE_URL`
+- `QA_JIRA_EMAIL`
+- `QA_JIRA_API_TOKEN`
+
+Create a local `.env` file (gitignored) by copying
+[.env.example](C:/Projects/jira-salesforce-demo/jira-salesforce-demo/.env.example)
+and filling real values.
+
+The QA launcher script
+[qa.js](C:/Projects/jira-salesforce-demo/jira-salesforce-demo/scripts/qa.js)
+loads `.env` values and still supports legacy `JIRA_*` names for backward
+compatibility, but new setups should use `QA_JIRA_*`.

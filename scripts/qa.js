@@ -42,13 +42,14 @@ console.log("");
 */
 
 const PROJECT_ROOT = process.cwd();
+const ENV_FILE = path.join(PROJECT_ROOT, ".env");
 
-const PROMPT_FILE = path.join(
-  PROJECT_ROOT,
-  ".github",
-  "prompts",
-  "implement-qa.prompt.md"
-);
+const PROMPT_CANDIDATES = [
+  path.join(PROJECT_ROOT, ".github", "prompts", "test-jira.prompt.md"),
+  path.join(PROJECT_ROOT, ".github", "prompts", "implement-qa.prompt.md")
+];
+
+const PROMPT_FILE = PROMPT_CANDIDATES.find((file) => fs.existsSync(file));
 
 const AGENT_FILE = path.join(
   PROJECT_ROOT,
@@ -56,6 +57,21 @@ const AGENT_FILE = path.join(
   "agents",
   "salesforce-qa.agent.md"
 );
+
+const JIRA_AUTH_KEYS = {
+  baseUrl: {
+    primary: "QA_JIRA_BASE_URL",
+    fallback: "JIRA_BASE_URL"
+  },
+  email: {
+    primary: "QA_JIRA_EMAIL",
+    fallback: "JIRA_EMAIL"
+  },
+  apiToken: {
+    primary: "QA_JIRA_API_TOKEN",
+    fallback: "JIRA_API_TOKEN"
+  }
+};
 
 /*
 
@@ -73,9 +89,92 @@ function validateFile(file, description) {
   }
 }
 
-validateFile(PROMPT_FILE, "QA prompt file");
+if (!PROMPT_FILE) {
+  console.error("Missing QA prompt file. Checked:");
+  PROMPT_CANDIDATES.forEach((file) => console.error(file));
+  process.exit(1);
+}
 
 validateFile(AGENT_FILE, "QA agent file");
+
+function parseDotEnv(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return {};
+  }
+
+  const content = fs.readFileSync(filePath, "utf8");
+  const env = {};
+
+  content.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      return;
+    }
+
+    const separator = trimmed.indexOf("=");
+    if (separator <= 0) {
+      return;
+    }
+
+    const key = trimmed.slice(0, separator).trim();
+    let value = trimmed.slice(separator + 1).trim();
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    env[key] = value;
+  });
+
+  return env;
+}
+
+function bootstrapDotEnv() {
+  const parsed = parseDotEnv(ENV_FILE);
+
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  });
+}
+
+function resolveJiraAuth() {
+  const resolved = {};
+  const migratedKeys = [];
+
+  Object.entries(JIRA_AUTH_KEYS).forEach(([name, mapping]) => {
+    const primaryValue = process.env[mapping.primary];
+    const fallbackValue = process.env[mapping.fallback];
+
+    if (primaryValue) {
+      resolved[name] = {
+        key: mapping.primary,
+        value: primaryValue
+      };
+      return;
+    }
+
+    if (fallbackValue) {
+      resolved[name] = {
+        key: mapping.fallback,
+        value: fallbackValue
+      };
+      migratedKeys.push(`${mapping.fallback} -> ${mapping.primary}`);
+      return;
+    }
+
+    resolved[name] = null;
+  });
+
+  return {
+    resolved,
+    migratedKeys
+  };
+}
 
 /*
 
@@ -85,11 +184,12 @@ validateFile(AGENT_FILE, "QA agent file");
 
 */
 
-const requiredEnvironment = ["JIRA_BASE_URL", "JIRA_EMAIL", "JIRA_API_TOKEN"];
+bootstrapDotEnv();
 
-const missingEnvironment = requiredEnvironment.filter(
-  (key) => !process.env[key]
-);
+const jiraAuth = resolveJiraAuth();
+const missingEnvironment = Object.entries(JIRA_AUTH_KEYS)
+  .filter(([name]) => !jiraAuth.resolved[name]?.value)
+  .map(([, mapping]) => mapping.primary);
 
 if (missingEnvironment.length > 0) {
   console.warn("");
@@ -105,6 +205,16 @@ if (missingEnvironment.length > 0) {
     "The QA agent can still be launched if Jira/Copilot authentication"
   );
   console.warn("is handled by your configured VS Code/Jira integration.");
+  console.warn("For centralized token auth, configure QA_JIRA_* variables.");
+  console.warn(`Tip: add them to ${ENV_FILE} (this file is gitignored).`);
+  console.warn("");
+}
+
+if (jiraAuth.migratedKeys.length > 0) {
+  console.warn("");
+  console.warn("Using legacy Jira auth variables for compatibility:");
+  jiraAuth.migratedKeys.forEach((mapping) => console.warn(`- ${mapping}`));
+  console.warn("Please migrate to QA_JIRA_* names in your .env.");
   console.warn("");
 }
 
@@ -121,7 +231,18 @@ const qaContext = {
   startedAt: new Date().toISOString(),
   projectRoot: PROJECT_ROOT,
   promptFile: PROMPT_FILE,
-  agentFile: AGENT_FILE
+  agentFile: AGENT_FILE,
+  jiraAuth: {
+    mode: missingEnvironment.length === 0 ? "token" : "oauth-or-token",
+    baseUrlConfigured: Boolean(jiraAuth.resolved.baseUrl?.value),
+    emailConfigured: Boolean(jiraAuth.resolved.email?.value),
+    apiTokenConfigured: Boolean(jiraAuth.resolved.apiToken?.value),
+    sourceKeys: {
+      baseUrl: jiraAuth.resolved.baseUrl?.key || null,
+      email: jiraAuth.resolved.email?.key || null,
+      apiToken: jiraAuth.resolved.apiToken?.key || null
+    }
+  }
 };
 
 const contextDirectory = path.join(PROJECT_ROOT, ".qa");
@@ -149,19 +270,15 @@ console.log("");
 */
 
 function commandExists(command) {
-  ```
-const result = spawnSync(
-    process.platform === "win32"
-        ? "where"
-        : "which",
+  const result = spawnSync(
+    process.platform === "win32" ? "where" : "which",
     [command],
     {
-        stdio: "ignore"
+      stdio: "ignore"
     }
-);
+  );
 
-return result.status === 0;
-```;
+  return result.status === 0;
 }
 
 const sfCommandAvailable = commandExists("sf");
@@ -233,37 +350,21 @@ console.log(executionInstruction);
   */
 
 if (sfCommandAvailable) {
-  ```
-console.log("Checking Salesforce CLI...");
+  console.log("Checking Salesforce CLI...");
 
-const sfVersion = spawnSync(
-    "sf",
-    ["--version"],
-    {
-        encoding: "utf8"
-    }
-);
+  const sfVersion = spawnSync("sf", ["--version"], {
+    encoding: "utf8"
+  });
 
-if (sfVersion.status === 0) {
-    console.log(
-        sfVersion.stdout.trim()
-    );
+  if (sfVersion.status === 0) {
+    console.log(sfVersion.stdout.trim());
+  } else {
+    console.warn("Salesforce CLI detected but version check failed.");
+  }
 } else {
-    console.warn(
-        "Salesforce CLI detected but version check failed."
-    );
-}
-```;
-} else {
-  ```
-console.warn(
-    "Salesforce CLI was not found."
-);
+  console.warn("Salesforce CLI was not found.");
 
-console.warn(
-    "Automated Salesforce tests may be unavailable."
-);
-```;
+  console.warn("Automated Salesforce tests may be unavailable.");
 }
 
 console.log("");
