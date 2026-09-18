@@ -485,8 +485,9 @@ Each per-test comment must include:
 - Result (PASS/FAIL/BLOCKED/NOT EXECUTED)
 - Expected Result
 - Actual Result
-- Evidence
 - Failure reason and error details (for FAIL/BLOCKED)
+
+Do not include an Evidence section in Jira Test issue comments.
 
 Then transition each Test issue by result:
 
