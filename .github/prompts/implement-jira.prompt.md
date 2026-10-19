@@ -43,9 +43,9 @@ This prompt provides the story-specific execution checklist:
 - Use `npm run story:publish -- <KEY>` for normal reviewed publishing. The
   script deploys Salesforce metadata, then stages, commits, and pushes the
   changed Salesforce files. It does not replace acceptance-test execution.
-- For reviewed destructive changes, use the manifest/destructive-deployment
-  procedure defined by the agent; do not pass deleted files to the normal
-  source deployment path.
+- `story:publish` now supports reviewed destructive changes by generating and
+  using a post-destructive manifest for deleted metadata in the same publish
+  run.
 
 ## 4. Execute and report tests
 
