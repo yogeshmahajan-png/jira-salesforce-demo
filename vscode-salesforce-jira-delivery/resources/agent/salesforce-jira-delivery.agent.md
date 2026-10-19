@@ -661,7 +661,7 @@ Overall Result:
 Passed / Failed / Blocked / Incomplete
 
 After reports are posted, transition passed test-case subtasks to `Done`.
-Transition the parent story to `Done` only when every required case passed and
+Transition the parent story to `Dev Completed` only when every required case passed and
 all required reports were posted and verified. Leave failed, blocked, and
 not-run work in its current status.
 
