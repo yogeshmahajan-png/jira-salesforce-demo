@@ -268,6 +268,23 @@ function getOtherSalesforceFiles(files) {
   return files.filter((file) => !knownFiles.has(file));
 }
 
+function splitSalesforceFiles(files) {
+  const deployFiles = [];
+  const deleteFiles = [];
+
+  for (const file of files) {
+    const absolutePath = path.resolve(file);
+
+    if (fs.existsSync(absolutePath)) {
+      deployFiles.push(file);
+    } else {
+      deleteFiles.push(file);
+    }
+  }
+
+  return { deployFiles, deleteFiles };
+}
+
 function ensureCleanWorkspace() {
   const status = capture("git", ["status", "--porcelain"]);
 
@@ -376,48 +393,54 @@ Verify these Permission Sets match the Jira personas resolved from Confluence.
   }
 }
 
-function writeDeploymentManifest(files, jiraKey) {
+function mapSalesforceFileToMetadata(file) {
+  let type;
+  let member;
+  let match = file.match(
+    /\/objects\/([^/]+)\/fields\/([^/]+)\.field-meta\.xml$/
+  );
+
+  if (match) {
+    type = "CustomField";
+    member = `${match[1]}.${match[2]}`;
+  } else if (
+    file.match(
+      /\/objects\/[^/]+\/validationRules\/[^/]+\.validationRule-meta\.xml$/
+    )
+  ) {
+    const validationMatch = file.match(
+      /\/objects\/([^/]+)\/validationRules\/([^/]+)\.validationRule-meta\.xml$/
+    );
+    type = "ValidationRule";
+    member = `${validationMatch[1]}.${validationMatch[2]}`;
+  } else if (file.includes("/permissionsets/")) {
+    type = "PermissionSet";
+    member = path.basename(file, ".permissionset-meta.xml");
+  } else if (file.includes("/layouts/")) {
+    type = "Layout";
+    member = path.basename(file, ".layout-meta.xml");
+  } else if (file.includes("/classes/")) {
+    type = "ApexClass";
+    member = file.endsWith(".cls")
+      ? path.basename(file, ".cls")
+      : path.basename(file, ".cls-meta.xml");
+  } else if (file.includes("/flows/")) {
+    type = "Flow";
+    member = path.basename(file, ".flow-meta.xml");
+  } else {
+    throw new Error(
+      `Cannot map Salesforce file to deployment metadata: ${file}`
+    );
+  }
+
+  return { type, member };
+}
+
+function membersByTypeFromFiles(files) {
   const membersByType = new Map();
 
   for (const file of files) {
-    let type;
-    let member;
-    let match = file.match(
-      /\/objects\/([^/]+)\/fields\/([^/]+)\.field-meta\.xml$/
-    );
-
-    if (match) {
-      type = "CustomField";
-      member = `${match[1]}.${match[2]}`;
-    } else if (
-      file.match(
-        /\/objects\/[^/]+\/validationRules\/[^/]+\.validationRule-meta\.xml$/
-      )
-    ) {
-      const validationMatch = file.match(
-        /\/objects\/([^/]+)\/validationRules\/([^/]+)\.validationRule-meta\.xml$/
-      );
-      type = "ValidationRule";
-      member = `${validationMatch[1]}.${validationMatch[2]}`;
-    } else if (file.includes("/permissionsets/")) {
-      type = "PermissionSet";
-      member = path.basename(file, ".permissionset-meta.xml");
-    } else if (file.includes("/layouts/")) {
-      type = "Layout";
-      member = path.basename(file, ".layout-meta.xml");
-    } else if (file.includes("/classes/")) {
-      type = "ApexClass";
-      member = file.endsWith(".cls")
-        ? path.basename(file, ".cls")
-        : path.basename(file, ".cls-meta.xml");
-    } else if (file.includes("/flows/")) {
-      type = "Flow";
-      member = path.basename(file, ".flow-meta.xml");
-    } else {
-      throw new Error(
-        `Cannot map Salesforce file to deployment metadata: ${file}`
-      );
-    }
+    const { type, member } = mapSalesforceFileToMetadata(file);
 
     if (!membersByType.has(type)) {
       membersByType.set(type, []);
@@ -425,6 +448,10 @@ function writeDeploymentManifest(files, jiraKey) {
     membersByType.get(type).push(member);
   }
 
+  return membersByType;
+}
+
+function writeManifestArtifact(membersByType, jiraKey, name) {
   const types = [...membersByType.entries()]
     .map(
       ([type, members]) =>
@@ -435,18 +462,46 @@ function writeDeploymentManifest(files, jiraKey) {
     )
     .join("\n");
   const manifest = `<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata">\n${types}\n    <version>67.0</version>\n</Package>\n`;
-  return writeStoryArtifact(jiraKey, "deploy-manifest.xml", manifest);
+  return writeStoryArtifact(jiraKey, name, manifest);
 }
 
 function deploySalesforce(files, jiraKey) {
+  const { deployFiles, deleteFiles } = splitSalesforceFiles(files);
+
+  if (deployFiles.length === 0 && deleteFiles.length === 0) {
+    throw new Error("No Salesforce files found for deployment.");
+  }
+
   console.log(`
 Salesforce components to deploy
 -------------------------------
-${files.join("\n")}
+${deployFiles.length ? deployFiles.join("\n") : "None"}
 `);
 
-  const manifest = writeDeploymentManifest(files, jiraKey);
-  const args = ["project", "deploy", "start", "--manifest", manifest];
+  if (deleteFiles.length > 0) {
+    console.log(`
+Salesforce components to delete
+-------------------------------
+${deleteFiles.join("\n")}
+`);
+  }
+
+  const deployManifest = writeManifestArtifact(
+    membersByTypeFromFiles(deployFiles),
+    jiraKey,
+    "deploy-manifest.xml"
+  );
+  const args = ["project", "deploy", "start", "--manifest", deployManifest];
+
+  if (deleteFiles.length > 0) {
+    const destructiveManifest = writeManifestArtifact(
+      membersByTypeFromFiles(deleteFiles),
+      jiraKey,
+      "destructiveChangesPost.xml"
+    );
+    args.push("--post-destructive-changes", destructiveManifest);
+  }
+
   args.push("--target-org", TARGET_ORG);
   args.push("--concise", "--json");
 
