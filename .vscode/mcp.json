@@ -1,9 +1,23 @@
 {
-	"servers": {
-		"atlassian": {
-			"url": "https://mcp.atlassian.com/v1/mcp/authv2",
-			"type": "http"
-		}
-	},
-	"inputs": []
+  "servers": {
+    "atlassian": {
+      "url": "https://mcp.atlassian.com/v1/mcp/authv2",
+      "type": "http"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@github/github-mcp-server"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_pat}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "github_pat",
+      "type": "promptString",
+      "description": "GitHub Personal Access Token",
+      "password": true
+    }
+  ]
 }
