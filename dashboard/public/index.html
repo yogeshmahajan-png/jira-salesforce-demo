@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111827" />
+    <title>Dev Agent Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LOCAL WORKSPACE · JIRA DELIVERY</p>
+          <h1>Dev agent dashboard</h1>
+          <p class="subtitle">
+            A clear view of recorded story runs, deployments, and test outcomes.
+          </p>
+        </div>
+        <button id="refresh" class="button button-secondary" type="button">
+          <span aria-hidden="true">↻</span> Refresh
+        </button>
+      </header>
+
+      <section class="notice" aria-label="Data scope">
+        <span class="notice-icon" aria-hidden="true">i</span>
+        <p>
+          <strong>Artifact-backed status.</strong> This dashboard reads saved
+          files in <code>artifacts/jira/</code>; it does not track currently
+          running agents or call Jira.
+        </p>
+        <span id="last-updated" class="last-updated">Loading…</span>
+      </section>
+
+      <section class="metrics" aria-label="Run summary">
+        <article class="metric-card">
+          <span class="metric-label">Recorded runs</span>
+          <strong id="metric-total" class="metric-value">—</strong>
+          <span class="metric-foot">Across all Jira stories</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Succeeded</span>
+          <strong id="metric-succeeded" class="metric-value metric-green"
+            >—</strong
+          >
+          <span class="metric-foot">Deploy and tests passed</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Failed</span>
+          <strong id="metric-failed" class="metric-value metric-red">—</strong>
+          <span class="metric-foot">Deployment or test failure</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Incomplete</span>
+          <strong id="metric-incomplete" class="metric-value metric-amber"
+            >—</strong
+          >
+          <span class="metric-foot">Needs a follow-up or more data</span>
+        </article>
+      </section>
+
+      <section class="runs-panel" aria-labelledby="runs-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">RUN HISTORY</p>
+            <h2 id="runs-heading">Story runs</h2>
+          </div>
+          <span id="result-count" class="result-count"></span>
+        </div>
+
+        <form id="filters" class="filters">
+          <label class="search-field">
+            <span class="sr-only">Search runs</span>
+            <span aria-hidden="true" class="search-icon">⌕</span>
+            <input
+              id="search"
+              type="search"
+              placeholder="Search story, branch, org…"
+            />
+          </label>
+          <label>
+            <span class="sr-only">Filter by status</span>
+            <select id="status-filter">
+              <option value="">All statuses</option>
+              <option value="Succeeded">Succeeded</option>
+              <option value="Failed">Failed</option>
+              <option value="Incomplete">Incomplete</option>
+              <option value="Not completed">Not completed</option>
+            </select>
+          </label>
+          <label>
+            <span class="sr-only">Filter from date</span>
+            <input id="date-from" type="date" aria-label="From date" />
+          </label>
+          <label>
+            <span class="sr-only">Filter through date</span>
+            <input id="date-to" type="date" aria-label="Through date" />
+          </label>
+          <button id="clear-filters" class="button button-quiet" type="button">
+            Clear
+          </button>
+        </form>
+
+        <div
+          id="warning-banner"
+          class="warning-banner"
+          hidden
+          role="status"
+        ></div>
+        <div id="run-list" class="run-list" aria-live="polite">
+          <div class="loading">Loading run history…</div>
+        </div>
+      </section>
+
+      <footer>Read-only dashboard · Served on this computer only</footer>
+    </main>
+  </body>
+</html>

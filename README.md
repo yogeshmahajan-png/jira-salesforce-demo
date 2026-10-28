@@ -77,6 +77,30 @@ See `vscode-salesforce-jira-delivery/README.md` for build and usage instructions
 and `vscode-salesforce-jira-delivery/DEPENDENCIES.json` for the versioned
 machine, extension, service, and workspace prerequisites.
 
+## Start it from the repo root with npm run dashboard, then open http://127.0.0.1:4173. It binds to localhost only; set ## DASHBOARD_PORT to use another port.
+
+## Local Dev Agent Dashboard
+
+The standalone dashboard displays recorded Jira delivery runs, deployment
+status, and test outcomes from `artifacts/jira/`. It does not run inside or
+modify the VS Code extension, connect to Jira, or report live agent activity.
+
+Start it from the repository root:
+
+```text
+npm run dashboard
+```
+
+Open the localhost URL printed by the server (port `4173` by default). To use a
+different port, set `DASHBOARD_PORT` before starting it. The server binds only
+to `127.0.0.1`; it is read-only and requires no additional packages.
+
+Run the focused dashboard tests with:
+
+```text
+npm run test:dashboard
+```
+
 ## QA Agent Jira Authentication (Centralized)
 
 For QA agent token-based Jira/Xray operations, use centralized environment

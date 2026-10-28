@@ -19,7 +19,9 @@
     "story:publish": "node scripts/story.js publish",
     "story:report": "node scripts/test-report.js",
     "test:report": "node --test scripts/test-report.test.js",
-    "qa:start": "node scripts/qa.js"
+    "qa:start": "node scripts/qa.js",
+    "dashboard": "node dashboard/server.js",
+    "test:dashboard": "node --test dashboard/server.test.js"
   },
   "devDependencies": {
     "@lwc/eslint-plugin-lwc": "^3.1.0",
