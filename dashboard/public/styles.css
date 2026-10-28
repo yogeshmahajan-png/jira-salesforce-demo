@@ -292,6 +292,55 @@ h2 {
   border-top: 1px solid var(--border);
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 23px;
+  border-top: 1px solid var(--border);
+}
+
+.pagination-summary {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.page-button {
+  min-width: 31px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #2a3850;
+  border-radius: 6px;
+  background: #0d1626;
+  color: #b7c5d8;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.page-button:hover:not(:disabled) {
+  border-color: #5685bb;
+  color: white;
+}
+
+.page-button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.page-current,
+.page-current:hover {
+  border-color: #4272a7;
+  background: #1b385c;
+  color: #d7eaff;
+}
+
 .run-card {
   padding: 17px 23px 15px;
   border-bottom: 1px solid #202d41;
@@ -564,6 +613,17 @@ footer {
   .run-card {
     padding-right: 15px;
     padding-left: 15px;
+  }
+
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
   }
 
   .run-summary {

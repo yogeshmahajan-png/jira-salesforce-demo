@@ -6,7 +6,9 @@ const statusFilter = document.querySelector("#status-filter");
 const dateFrom = document.querySelector("#date-from");
 const dateTo = document.querySelector("#date-to");
 const resultCount = document.querySelector("#result-count");
+const pageSize = 10;
 let runs = [];
+let currentPage = 1;
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -103,7 +105,9 @@ function renderRun(run) {
   return card;
 }
 
-function render() {
+function render(resetPage = false) {
+  if (resetPage) currentPage = 1;
+
   const query = searchInput.value.trim().toLowerCase();
   const status = statusFilter.value;
   const filtered = runs.filter((run) => {
@@ -123,6 +127,10 @@ function render() {
 
   runList.replaceChildren();
   resultCount.textContent = `${filtered.length} of ${runs.length} runs`;
+  const pageCount = Math.ceil(filtered.length / pageSize);
+  currentPage = Math.min(currentPage, Math.max(pageCount, 1));
+  renderPagination(filtered.length, pageCount);
+
   if (!filtered.length) {
     runList.append(
       element(
@@ -136,7 +144,56 @@ function render() {
     return;
   }
 
-  for (const run of filtered) runList.append(renderRun(run));
+  const start = (currentPage - 1) * pageSize;
+  for (const run of filtered.slice(start, start + pageSize)) {
+    runList.append(renderRun(run));
+  }
+}
+
+function renderPagination(total, pageCount) {
+  const pagination = document.querySelector("#pagination");
+  const summary = document.querySelector("#pagination-summary");
+  const controls = document.querySelector("#pagination-controls");
+  controls.replaceChildren();
+  pagination.hidden = pageCount <= 1;
+  if (pageCount <= 1) return;
+
+  const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, total);
+  summary.textContent = `Showing ${start}–${end} of ${total}`;
+
+  const addButton = (label, page, options = {}) => {
+    const button = element(
+      "button",
+      `page-button${options.current ? " page-current" : ""}`,
+      label
+    );
+    button.type = "button";
+    button.disabled = Boolean(options.disabled);
+    if (options.current) button.setAttribute("aria-current", "page");
+    button.setAttribute("aria-label", options.label || `Page ${page}`);
+    button.addEventListener("click", () => {
+      currentPage = page;
+      render();
+      document.querySelector("#runs-heading").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+    controls.append(button);
+  };
+
+  addButton("Previous", currentPage - 1, {
+    disabled: currentPage === 1,
+    label: "Previous page"
+  });
+  for (let page = 1; page <= pageCount; page += 1) {
+    addButton(String(page), page, { current: page === currentPage });
+  }
+  addButton("Next", currentPage + 1, {
+    disabled: currentPage === pageCount,
+    label: "Next page"
+  });
 }
 
 async function loadRuns() {
@@ -166,7 +223,7 @@ async function loadRuns() {
     warningBanner.textContent = data.warnings?.length
       ? `${data.warnings.length} artifact file(s) could not be read. The visible run data may be incomplete.`
       : "";
-    render();
+    render(true);
   } catch (error) {
     runList.replaceChildren(
       element(
@@ -182,8 +239,8 @@ async function loadRuns() {
 }
 
 for (const input of [searchInput, statusFilter, dateFrom, dateTo]) {
-  input.addEventListener("input", render);
-  input.addEventListener("change", render);
+  input.addEventListener("input", () => render(true));
+  input.addEventListener("change", () => render(true));
 }
 document.querySelector("#filters").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -193,7 +250,7 @@ document.querySelector("#clear-filters").addEventListener("click", () => {
   statusFilter.value = "";
   dateFrom.value = "";
   dateTo.value = "";
-  render();
+  render(true);
 });
 document.querySelector("#refresh").addEventListener("click", loadRuns);
 
