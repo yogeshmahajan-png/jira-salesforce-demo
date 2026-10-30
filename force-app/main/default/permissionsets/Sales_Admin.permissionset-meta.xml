@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <description
-  >Read and edit access to the Account fields introduced by KAN-36 and Contact fields introduced by KAN-37.</description>
+  >Read/edit access to Account fields from KAN-36, Contact fields from KAN-37, and Opportunity risk fields from KAN-82.</description>
     <fieldPermissions>
         <editable>true</editable>
         <field>Account.Account_Budget__c</field>
@@ -70,6 +70,21 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Contact.Renewal_Date__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Opportunity.At_Risk__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Opportunity.Risk_Reason__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Opportunity.Last_Risk_Review_Date__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
