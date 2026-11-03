@@ -71,6 +71,22 @@ Jira is the source of truth for business requirements.
 
 If a material requirement is ambiguous, stop rather than guessing.
 
+## Mandatory Jira status and reporting gate
+
+- After reading the parent issue, inspect its available transitions and move it
+  to `In Progress` when that transition is available. Verify the returned
+  status; if it is unavailable or the transition fails, report that explicitly
+  and continue only if the workflow permits.
+- After successful deployment and final test execution, post the consolidated
+  implementation and testing report to the parent issue and update each test
+  subtask with its final result and evidence.
+- Verify that the parent and subtask comments were posted and that Jira returns
+  the expected statuses. Do not claim Jira reporting or status updates succeeded
+  without verification.
+- Transition passed test subtasks to `Done`. Transition the parent to
+  `Dev Completed` only when every required test passed and the reports and Jira
+  updates were verified. Otherwise leave the parent incomplete and explain why.
+
 ---
 
 # 2. Resolve Salesforce Security
@@ -129,6 +145,10 @@ Never automatically create a replacement Permission Set.
 ---
 
 # 3. Start Jira Development
+
+Before starting implementation, inspect the parent issue's available Jira
+transitions. If `In Progress` is available, transition the issue and verify its
+status. If it is unavailable, keep its current status and report that fact.
 
 Run:
 
