@@ -41,13 +41,16 @@ The installer also:
 
 - adds `story:start`, `story:publish`, `story:report`, and `test:report` to
   `package.json`;
-- adds the official Atlassian MCP endpoint to both `.vscode/mcp.json` and the
-  workspace `.mcp.json` file so Local chat and Agent Host sessions can discover
-  Jira/Confluence tools; and
+- adds the Atlassian and GitHub MCP endpoints to the portable workspace-root
+  `.mcp.json`; and
 - ignores generated `artifacts/jira/` report data.
 
 See `DEPENDENCIES.json` for machine-readable prerequisites and the exact
 package version.
+
+The MCP configuration uses the portable `mcpServers` format. Atlassian sign-in
+is handled by its hosted endpoint, and GitHub uses its hosted MCP endpoint and
+Copilot authentication. No access token is stored in the workspace.
 
 ## Use
 

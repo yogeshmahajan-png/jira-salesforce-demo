@@ -52,6 +52,12 @@
       "reason": "Reads Jira and Confluence and posts delivery reports."
     },
     {
+      "name": "GitHub MCP",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "required": false,
+      "reason": "Provides GitHub repository and pull request tools when authorized."
+    },
+    {
       "name": "Salesforce development org",
       "defaultAlias": "CopilotJiraOrg",
       "required": true,
@@ -64,7 +70,6 @@
     ".github/prompts/test-jira.prompt.md",
     ".github/prompts/test-report-guide.md",
     ".mcp.json",
-    ".vscode/mcp.json",
     "scripts/story.js",
     "scripts/test-report.js",
     "scripts/test-report.test.js",

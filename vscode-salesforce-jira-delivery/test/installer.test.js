@@ -8,6 +8,7 @@ const { afterEach, test } = require("node:test");
 const {
   ATLASSIAN_SERVER,
   FILES,
+  GITHUB_SERVER,
   WORKSPACE_SCRIPTS,
   findConflicts,
   install
@@ -52,14 +53,13 @@ test("installs all resources and creates portable workspace configuration", () =
     fs.readFileSync(path.join(workspace, "package.json"))
   );
   assert.deepEqual(packageJson.scripts, WORKSPACE_SCRIPTS);
-  const mcp = JSON.parse(
-    fs.readFileSync(path.join(workspace, ".vscode", "mcp.json"))
+  const mcp = JSON.parse(fs.readFileSync(path.join(workspace, ".mcp.json")));
+  assert.deepEqual(mcp.mcpServers.atlassian, ATLASSIAN_SERVER);
+  assert.deepEqual(mcp.mcpServers.github, GITHUB_SERVER);
+  assert.equal(
+    fs.existsSync(path.join(workspace, ".vscode", "mcp.json")),
+    false
   );
-  assert.deepEqual(mcp.servers.atlassian, ATLASSIAN_SERVER);
-  const agentHostMcp = JSON.parse(
-    fs.readFileSync(path.join(workspace, ".mcp.json"))
-  );
-  assert.deepEqual(agentHostMcp.servers.atlassian, ATLASSIAN_SERVER);
   assert.match(
     fs.readFileSync(path.join(workspace, ".gitignore"), "utf8"),
     /^artifacts\/jira\/$/m
@@ -80,7 +80,7 @@ test("preserves unrelated package, MCP, and gitignore settings", () => {
   );
   fs.writeFileSync(
     path.join(workspace, ".mcp.json"),
-    JSON.stringify({ servers: { agentHost: { command: "agent-host-mcp" } } })
+    JSON.stringify({ mcpServers: { agentHost: { command: "agent-host-mcp" } } })
   );
   fs.writeFileSync(path.join(workspace, ".gitignore"), "dist/\n");
 
@@ -91,17 +91,16 @@ test("preserves unrelated package, MCP, and gitignore settings", () => {
   );
   assert.equal(packageJson.name, "existing");
   assert.equal(packageJson.scripts.build, "node build.js");
-  const mcp = JSON.parse(
+  const vscodeMcp = JSON.parse(
     fs.readFileSync(path.join(workspace, ".vscode", "mcp.json"))
   );
-  assert.deepEqual(mcp.servers.internal, { command: "internal-mcp" });
-  const agentHostMcp = JSON.parse(
-    fs.readFileSync(path.join(workspace, ".mcp.json"))
-  );
-  assert.deepEqual(agentHostMcp.servers.agentHost, {
+  assert.deepEqual(vscodeMcp.servers.internal, { command: "internal-mcp" });
+  const mcp = JSON.parse(fs.readFileSync(path.join(workspace, ".mcp.json")));
+  assert.deepEqual(mcp.mcpServers.agentHost, {
     command: "agent-host-mcp"
   });
-  assert.deepEqual(agentHostMcp.servers.atlassian, ATLASSIAN_SERVER);
+  assert.deepEqual(mcp.mcpServers.atlassian, ATLASSIAN_SERVER);
+  assert.deepEqual(mcp.mcpServers.github, GITHUB_SERVER);
   assert.match(
     fs.readFileSync(path.join(workspace, ".gitignore"), "utf8"),
     /^dist\/$/m
@@ -125,10 +124,7 @@ test("reports conflicts without changing the workspace", () => {
   const result = install(workspace, resources);
   assert.deepEqual(result.conflicts, conflicts);
   assert.equal(fs.readFileSync(target, "utf8"), "project-specific agent\n");
-  assert.equal(
-    fs.existsSync(path.join(workspace, ".vscode", "mcp.json")),
-    false
-  );
+  assert.equal(fs.existsSync(path.join(workspace, ".mcp.json")), false);
 });
 
 test("explicit overwrite replaces only managed conflicts and is idempotent", () => {

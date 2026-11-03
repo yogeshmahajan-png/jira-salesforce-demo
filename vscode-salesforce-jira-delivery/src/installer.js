@@ -32,6 +32,11 @@ const ATLASSIAN_SERVER = {
   type: "http"
 };
 
+const GITHUB_SERVER = {
+  type: "http",
+  url: "https://api.githubcopilot.com/mcp/"
+};
+
 function readJson(file, fallback) {
   if (!fs.existsSync(file)) {
     return fallback;
@@ -74,23 +79,18 @@ function findConflicts(workspace, resources) {
     }
   }
 
-  const mcpFile = path.join(workspace, ".vscode", "mcp.json");
+  const mcpFile = path.join(workspace, ".mcp.json");
   const mcp = readJson(mcpFile, {});
-  if (
-    mcp.servers?.atlassian &&
-    JSON.stringify(mcp.servers.atlassian) !== JSON.stringify(ATLASSIAN_SERVER)
-  ) {
-    conflicts.push(".vscode/mcp.json#servers.atlassian");
-  }
-
-  const agentHostMcpFile = path.join(workspace, ".mcp.json");
-  const agentHostMcp = readJson(agentHostMcpFile, {});
-  if (
-    agentHostMcp.servers?.atlassian &&
-    JSON.stringify(agentHostMcp.servers.atlassian) !==
-      JSON.stringify(ATLASSIAN_SERVER)
-  ) {
-    conflicts.push(".mcp.json#servers.atlassian");
+  for (const [name, server] of Object.entries({
+    atlassian: ATLASSIAN_SERVER,
+    github: GITHUB_SERVER
+  })) {
+    if (
+      mcp.mcpServers?.[name] &&
+      JSON.stringify(mcp.mcpServers[name]) !== JSON.stringify(server)
+    ) {
+      conflicts.push(`.mcp.json#mcpServers.${name}`);
+    }
   }
 
   return conflicts;
@@ -143,17 +143,17 @@ function mergePackageJson(workspace, overwrite) {
 }
 
 function mergeMcpJson(workspace, overwrite) {
-  mergeMcpFile(path.join(workspace, ".vscode", "mcp.json"), overwrite);
-  mergeMcpFile(path.join(workspace, ".mcp.json"), overwrite);
-}
-
-function mergeMcpFile(file, overwrite) {
+  const file = path.join(workspace, ".mcp.json");
   const mcp = readJson(file, {});
-  mcp.servers ||= {};
-  mcp.inputs ||= [];
+  mcp.mcpServers ||= {};
 
-  if (!mcp.servers.atlassian || overwrite) {
-    mcp.servers.atlassian = ATLASSIAN_SERVER;
+  for (const [name, server] of Object.entries({
+    atlassian: ATLASSIAN_SERVER,
+    github: GITHUB_SERVER
+  })) {
+    if (!mcp.mcpServers[name] || overwrite) {
+      mcp.mcpServers[name] = server;
+    }
   }
 
   writeJson(file, mcp);
@@ -194,6 +194,7 @@ function install(workspace, resources, options = {}) {
 
 module.exports = {
   ATLASSIAN_SERVER,
+  GITHUB_SERVER,
   FILES,
   WORKSPACE_SCRIPTS,
   findConflicts,
