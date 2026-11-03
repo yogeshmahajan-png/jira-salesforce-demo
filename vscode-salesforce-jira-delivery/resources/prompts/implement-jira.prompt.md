@@ -17,6 +17,9 @@ This prompt provides the story-specific execution checklist:
 ## 1. Requirements and test coverage
 
 - Read and confirm the exact Jira story and acceptance criteria.
+- Inspect the parent issue's available transitions; move it to `In Progress`
+  when available and verify the returned status. If unavailable, report that
+  and leave the current status unchanged.
 - Assign stable acceptance-criterion IDs when they are missing.
 - Build one coverage matrix: `AC -> TC ID -> Jira subtask key`.
 - Cover every acceptance criterion and relevant positive, negative, boundary,
@@ -63,7 +66,9 @@ This prompt provides the story-specific execution checklist:
 - Read the concise report output and the needed `jira-comments.json` entries.
 - Post generated parent and subtask comments through Atlassian MCP, using
   markers to avoid duplicate comments.
-- Verify posted comment IDs and issue statuses before claiming completion.
+- Verify posted comment IDs and parent/subtask statuses before claiming
+  reporting succeeded. If a Jira update or verification fails, report the
+  failure explicitly and do not claim the story is complete.
 - After deployment, all required tests, Jira reporting, and status verification
   succeed, resolve the parent story's available transition by name and move it
   to `Dev Completed`. Verify the returned status before claiming completion.
