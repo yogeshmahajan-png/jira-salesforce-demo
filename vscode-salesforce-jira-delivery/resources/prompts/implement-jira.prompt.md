@@ -16,6 +16,11 @@ This prompt provides the story-specific execution checklist:
 
 ## 1. Requirements and test coverage
 
+- Before the first Atlassian MCP call, resolve the Jira site's `cloudId` using
+  `atlassian-getAccessibleAtlassianResources`; use the returned value exactly
+  for all Jira and Confluence calls. Never use the site's hostname as
+  `cloudId`. If the site is not listed, stop Atlassian work and report the
+  access issue.
 - Read and confirm the exact Jira story and acceptance criteria.
 - Inspect the parent issue's available transitions; move it to `In Progress`
   when available and verify the returned status. If unavailable, report that

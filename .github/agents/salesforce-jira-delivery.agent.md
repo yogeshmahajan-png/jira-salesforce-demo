@@ -38,6 +38,18 @@ Minimize credit and API usage without weakening delivery controls:
 - Retrieve only exact missing Salesforce metadata from the development org.
 - Do not launch extra agents for simple Jira reads, Confluence lookups, file searches, or local metadata inspection.
 
+## Atlassian Cloud ID Resolution
+
+Before the first Jira or Confluence MCP call in each session, call
+`atlassian-getAccessibleAtlassianResources` and select the resource matching the
+configured Jira site. Use the returned `cloudId` exactly as provided in every
+Atlassian MCP call for that site; never derive, guess, or pass the site hostname
+as `cloudId`. Reuse the resolved value for the rest of the session.
+
+If no matching resource is returned, stop Atlassian work and report that the
+site is not accessible to the connected Atlassian MCP account. Do not retry
+with guessed hostnames, IDs, or unrelated resources.
+
 ---
 
 # 1. Read Jira
@@ -108,9 +120,12 @@ Find the approved page:
 
 Salesforce Persona Permission Set Mapping
 
-Use targeted Confluence CQL for the exact page title before considering broader
-search. Fetch the approved mapping page once, then reuse the resolved mappings
-throughout the story.
+Read the approved page directly by page ID `4980739`:
+https://infobeans-team-f3ruyumb.atlassian.net/wiki/spaces/~55705872fb4d93a4734041a6cf7c2cf3020787/pages/4980739/Salesforce+Persona+Permission+Mapping
+
+Fetch the approved mapping page once, then reuse the resolved mappings
+throughout the story. If the direct read fails or the page does not contain the
+needed mapping, stop and report the access or mapping issue.
 
 Resolve:
 
