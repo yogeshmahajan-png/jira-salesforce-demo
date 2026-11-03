@@ -416,6 +416,9 @@ function mapSalesforceFileToMetadata(file) {
   } else if (file.includes("/permissionsets/")) {
     type = "PermissionSet";
     member = path.basename(file, ".permissionset-meta.xml");
+  } else if (file.includes("/globalValueSets/")) {
+    type = "GlobalValueSet";
+    member = path.basename(file, ".globalValueSet-meta.xml");
   } else if (file.includes("/layouts/")) {
     type = "Layout";
     member = path.basename(file, ".layout-meta.xml");
@@ -565,12 +568,15 @@ Target Org: ${TARGET_ORG}
    */
   const deployment = deploySalesforce(salesforceFiles, jiraKey);
 
+  const supportingFiles = getChangedFiles().filter(
+    (file) => file === "scripts/story.js"
+  );
+
   /*
    * STEP 4
-   * Stage only Salesforce files belonging
-   * to this Jira implementation.
+   * Stage Salesforce files and any changed story-publish support.
    */
-  command("git", ["add", "--", ...salesforceFiles]);
+  command("git", ["add", "--", ...salesforceFiles, ...supportingFiles]);
 
   /*
    * STEP 5
