@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <description
-  >Read/edit access to Account fields from KAN-36, Contact fields from KAN-37 and KAN-134, and Opportunity risk fields from KAN-82.</description>
+  >Read/edit access to Account fields from KAN-36, Contact fields from KAN-37 and KAN-134, Expense payment fields from KAN-150, and Opportunity risk fields from KAN-82.</description>
     <fieldPermissions>
         <editable>true</editable>
         <field>Account.Account_Budget__c</field>
@@ -70,6 +70,16 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Contact.Renewal_Date__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Expense.Payment_Desc__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Expense.Payment_Type__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
